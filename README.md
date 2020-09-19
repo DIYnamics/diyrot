@@ -51,6 +51,7 @@ True client-server based DigiPyRo
 - separating openCV processing from requests processing MEANS that uploaded 
 	files must be saved to a temporary location
 - asyncio queues are not threadsafe: use `Queue.queue`
+	- do we actually need threadsafe?
 	- more useful than `collections.deque`
 - unfortunately, the most efficient c++ subroutines would instantiate once,
 	then repeatedly process on pipe/network inputs. Having python threads which
@@ -60,7 +61,7 @@ True client-server based DigiPyRo
 	- derotation queue cannot fail
 
 ## OpenCV Compilation
-Technically, only need `core`, `imgproc` (for hough), and `videoio` (for 
+Only need `core`, `imgproc` (for hough), and `videoio` (for something really
 transforming in and out of matrices). Write and compile static libs, link to
 fully static binaries, eventually compile to webasm...
 
