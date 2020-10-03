@@ -30,9 +30,7 @@ int main(int argc, const char* argv[]) {
     if (circles.size() < 1)
         return(-3);
 
-    std::cout << (int)circles[0][0] << " " << 
-        (int)circles[0][1] << " " << 
-        (int)circles[0][2] << std::endl;
+    std::cout << (int)circles[0][0] << " " << (int)circles[0][1] << " " << (int)circles[0][2];
 
     vid.release();
     return EXIT_SUCCESS;

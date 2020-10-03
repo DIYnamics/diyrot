@@ -9,11 +9,11 @@
 	</head>
 	<body>
 		<p id="status">NetDPR is Ready. Select Video:</p>
-		<div><input type="file" id="fileInput" accept="video/*" capture="environment"/><tr/>RPM: <input type="number" id="rpm" value=10 /></div>
+		<div><input type="file" id="fileInput" accept="video/*"/><tr/>RPM: <input type="number" id="rpm" value=10 /></div>
 		<div><input type="submit" id="sendBut" value="Upload" style="visibility:hidden"></div>
 		<div>
 			<canvas id="drawSurf" style="position:absolute;z-index:2"></canvas>
-			<video muted=true id="videoIn" style="position:absolute;z-index:0"/>
+			<video autoplay muted=true id="videoIn" style="position:absolute;z-index:0"/>
 		</div>
 	</body>
 </html>

@@ -1,11 +1,11 @@
 import os
 import random
-import cv2
+import subprocess
 from flask import Flask, request, send_file, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = '/home/alch/uploads'
+app.config['UPLOAD_FOLDER'] = '/tmp/www/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 @app.route('/')
@@ -20,46 +20,29 @@ def jquery():
 def netdprjs():
     return send_file('ndpr.js')
 
-@app.route('/upload', methods=['POST'])
+@app.route('/upload/', methods=['POST'])
 def process():
     try:
         rpm, r, v = float(request.form['rpm']), float(request.form['r']), request.files['v']
         vpath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(v.filename))
         v.save(vpath)
         v.close()
-        vidcv = cv2.VideoCapture(vpath)
-        center, r = opencv_detect(vidcv, r)
-        vout = opencv_derot(vidcv, center, r, rpm)
-    except:
-        return "bad img", 400
+        x,y,r = opencv_detect(vpath, r)
+        vout = opencv_derot(vpath, x, y, r, rpm)
+    except e:
+        print(e)
+        return "bad_img", 400
     return url_for('sendback', fn=vout), 200
 
 @app.route('/return/<fn>')
 def sendback(fn):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], fn)
+    return send_from_directory('/tmp/www/return', fn)
 
-def opencv_detect(cv_vid, r):
-    _, f = cv_vid.read()
-    f = cv2.cvtColor(f, cv2.COLOR_BGR2GRAY)
-    f = cv2.medianBlur(f, 5)
-    ans = cv2.HoughCircles(f, cv2.HOUGH_GRADIENT, 1, r * 0.8, 300, 100, 250, 0)[0]
-    assert(len(ans[0]) == 3) # at least 1 and correctly detected
-    return tuple(ans[0][:2]), ans[0][-1]
+def opencv_detect(vidfp, r):
+    return subprocess.check_output(['/tmp/www/bin/radii_check', vidfp, str(r)], text=True).split()
 
-def opencv_derot(vidcv, center, r, rpm):
-    fps = int(vidcv.get(cv2.CAP_PROP_FPS))
-    frames = int(vidcv.get(cv2.CAP_PROP_FRAME_COUNT) / 10)
-    dim = (int(vidcv.get(cv2.CAP_PROP_FRAME_WIDTH)), int(vidcv.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-    dt = -1 * 6 * rpm / fps
-    voutfn = "%x.mp4"%random.getrandbits(30)
-    vidout = cv2.VideoWriter(os.path.join(app.config['UPLOAD_FOLDER'], voutfn),
-                             cv2.VideoWriter_fourcc(*'h264'), fps, dim)
-    for i in range(frames):
-        _, f = vidcv.read()
-        f = cv2.warpAffine(f, cv2.getRotationMatrix2D(center, i*dt, 1.0), dim)
-        vidout.write(f)
-    vidout.release()
-    return voutfn
+def opencv_derot(vidfp, x, y, r, rpm):
+    return subprocess.check_output(['/tmp/www/bin/derot', vidfp, x, y, r, str(rpm)], text=True)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=8080)

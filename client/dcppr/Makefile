@@ -9,7 +9,11 @@ derot:
 	g++ -I/usr/include/opencv4/ derot.cpp -o derot -L`pkg-config --libs opencv4`
 
 derot-test: derot radii-test
-	./derot IMG_0367.mp4 `./radii_check IMG_0367.mp4 400` 10
+	./derot square.mp4 `./radii_check square.mp4 400` 10
 
 radii-test: radii
-	./radii_check IMG_0367.mp4 400
+	./radii_check square.mp4 400
+
+install: radii derot
+	cp radii_check /tmp/www/bin/radii_check
+	cp derot /tmp/www/bin/derot

@@ -42,11 +42,12 @@ $(window).on('load', () => {
 		$( '#videoIn' )[0].removeAttribute('src')
 		$( '#videoIn' )[0].load()
 		$( '#sendBut' )[0].style.visibility = 'hidden'
-		fetch('/upload', {method: 'POST', body: r})
+		fetch('/upload/', {method: 'POST', body: r})
 			.then(r => r.text())
 			.then(t => {
 				console.log(t)
 				$( '#videoIn' ).attr('src', t)
+				$( '#videoIn' ).attr('loop', true)
 				$( '#videoIn' )[0].play()
 			})
 	})

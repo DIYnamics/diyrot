@@ -2,6 +2,7 @@
 #include <string>
 #include <chrono>
 #include <errno.h>
+#include <libgen.h>
 #include <opencv2/opencv.hpp>
 
 const std::string allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -17,33 +18,42 @@ std::string randstr() {
 int main(int argc, const char* argv[]) {
     std::srand((unsigned int) std::chrono::system_clock::now().time_since_epoch().count());
 
-    // ./bin FILE R X Y RPM
+    // ./bin FILE X Y R RPM
     if (argc != 6)
         return(-1);
-    const char* filename = argv[1];
+    char* filename = (char*) argv[1];
     auto circ = cv::Point(atoi(argv[2]), atoi(argv[3]));
     int radii = atoi(argv[4]);
     double rpm = strtod(argv[5], NULL);
     if (!rpm || errno == ERANGE)
         return(-1);
     auto vid = cv::VideoCapture(filename);
-    cv::Mat frame;
-    if (!vid.read(frame))
+    cv::Mat vid_frame;
+    if (!vid.read(vid_frame))
         return(-2);
 
     int fps = vid.get(cv::CAP_PROP_FPS);
     int total_frames = vid.get(cv::CAP_PROP_FRAME_COUNT);
     auto dims = cv::Size(vid.get(cv::CAP_PROP_FRAME_WIDTH), vid.get(cv::CAP_PROP_FRAME_HEIGHT));
-    double dtheta = -6 * rpm / (double) fps;
-    auto vidoutfn = randstr()+std::string(filename);
-    auto vidout = cv::VideoWriter("../uploads"+vidoutfn, codec, fps, dims);
+    cv::Mat center_mask = cv::Mat::zeros(dims, CV_8UC1);
+    cv::Mat out_frame;
+    cv::circle(center_mask, circ, radii, 255, -1);
 
+    auto vidoutfn = randstr()+std::string(basename(filename));
+    auto vidout = cv::VideoWriter("/tmp/www/return/" + vidoutfn, codec, fps, dims);
     int i = 0;
-    while(vid.read(frame)) {
-        cv::warpAffine(frame, frame, cv::getRotationMatrix2D(circ, (double)i++ * dtheta, 1.0), dims);
-        vidout << frame;
-    }
+    double dtheta = -6 * rpm / (double) fps;
+
+    if (!vidout.isOpened())
+        return(-2);
+
+    do {
+        cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i++ * dtheta, 1.0), dims);
+        vid_frame.copyTo(out_frame, center_mask);
+        vidout << out_frame;
+    } while(vid.read(vid_frame));
+
     vidout.release();
-    std::cout << vidoutfn << std::endl;
+    std::cout << vidoutfn;
     return EXIT_SUCCESS;
 }

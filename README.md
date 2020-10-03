@@ -71,3 +71,4 @@ fully static binaries, eventually compile to webasm...
 [werkzeug file obj](https://werkzeug.palletsprojects.com/en/1.0.x/datastructures/#werkzeug.datastructures.FileStorage)  
 [file in Requests](https://flask.palletsprojects.com/en/1.1.x/api/#flask.Request)  
 [uWSGI (+NGINX)](https://flask.palletsprojects.com/en/1.1.x/deploying/wsgi-standalone/)  
+[touchy](http://bencentra.com/code/2014/12/05/html5-canvas-touch-events.html)  
