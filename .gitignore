@@ -1,5 +1,4 @@
 **/*.pyc
 **/venv/
 **/*.mp4
-tags
-tags.*
+tags*

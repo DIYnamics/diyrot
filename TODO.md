@@ -1,8 +1,6 @@
-1. implement taskqueue with whatever WSGI loop you'd like
-	1. pick a WSGI loop
-	2. design from that WSGI loop
-2. compile openCV and C++ DPR binary
-	1. compile c++ binary to webasm
-3. build frontend
-4. Profit
-
+- reorg files nicely for reproducibility across servers / easy cleanup / editing
+- add logging / rate limiting
+- add special code to allow touch devices (ipad/phone) to draw circle
+- add indicator of current progress, make client fetch current processing progress instead of having serving process wait until done
+- add cookies to survive refresh
+- add c o l o r and style
