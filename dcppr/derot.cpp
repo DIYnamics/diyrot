@@ -18,13 +18,14 @@ std::string randstr() {
 int main(int argc, const char* argv[]) {
     std::srand((unsigned int) std::chrono::system_clock::now().time_since_epoch().count());
 
-    // ./bin FILE X Y R RPM
-    if (argc != 6)
+    // ./bin FILE X Y R RPM OUTDIR
+    if (argc != 7)
         return(-1);
     char* filename = (char*) argv[1];
     auto circ = cv::Point(atoi(argv[2]), atoi(argv[3]));
     int radii = atoi(argv[4]);
     double rpm = strtod(argv[5], NULL);
+    std::string outdir = std::string(argv[6]);
     if (!rpm || errno == ERANGE)
         return(-1);
     auto vid = cv::VideoCapture(filename);
@@ -40,7 +41,7 @@ int main(int argc, const char* argv[]) {
     cv::circle(center_mask, circ, radii, 255, -1);
 
     auto vidoutfn = randstr()+std::string(basename(filename));
-    auto vidout = cv::VideoWriter("/tmp/www/return/" + vidoutfn, codec, fps, dims);
+    auto vidout = cv::VideoWriter(outdir + vidoutfn, codec, fps, dims);
     int i = 0;
     double dtheta = -6 * rpm / (double) fps;
 

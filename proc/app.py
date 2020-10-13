@@ -4,13 +4,16 @@ import subprocess
 from flask import Flask, request, send_file, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
+_root_dir = '/tmp/www/'
+
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = '/tmp/www/uploads'
+app.config['UPLOAD_FOLDER'] = _root_dir + '/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+# used in development only
 @app.route('/')
 def index():
-    return send_file('ndpr.html')
+    return send_file('index.html')
 
 @app.route('/jquery.min.js')
 def jquery():
@@ -34,15 +37,16 @@ def process():
         return "bad_img", 400
     return url_for('sendback', fn=vout), 200
 
+# only used to generate path
 @app.route('/return/<fn>')
 def sendback(fn):
-    return send_from_directory('/tmp/www/return', fn)
+    return send_from_directory(_root_dir + '/return', fn)
 
 def opencv_detect(vidfp, r):
-    return subprocess.check_output(['/tmp/www/bin/radii_check', vidfp, str(r)], text=True).split()
+    return subprocess.check_output([_root_dir + '/bin/radii_check', vidfp, str(r)], text=True).split()
 
 def opencv_derot(vidfp, x, y, r, rpm):
-    return subprocess.check_output(['/tmp/www/bin/derot', vidfp, x, y, r, str(rpm)], text=True)
+    return subprocess.check_output([_root_dir + '/bin/derot', vidfp, x, y, r, str(rpm), _root_dir + '/return/'], text=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)

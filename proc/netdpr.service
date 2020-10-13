@@ -1,0 +1,9 @@
+[Unit]
+Description=tmp
+After=network.target
+
+[Service]
+User=alch
+Group=www-data
+WorkingDirectory=/home/alch/NetDPR/bad/
+ExecStart=uwsgi --ini uwsgi.ini
