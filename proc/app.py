@@ -4,11 +4,11 @@ import subprocess
 from flask import Flask, request, send_file, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
-_root_dir = '/tmp/www/'
+_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = _root_dir + '/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 # used in development only
 @app.route('/')
@@ -23,6 +23,7 @@ def jquery():
 def netdprjs():
     return send_file('ndpr.js')
 
+# actual production method
 @app.route('/upload/', methods=['POST'])
 def process():
     try:

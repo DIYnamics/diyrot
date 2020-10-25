@@ -2,11 +2,18 @@ default:
 	systemctl status netdpr.service
 	systemctl status nginx.service
 
-.PHONY: install
+nginx-log:
+	tail /var/log/nginx/error.log -n 20
+
+uwsgi-log:
+	journalctl _SYSTEMD_UNIT=netdpr.service | tail -n 20
+
 install:
-	rm -fdr /tmp/www/
-	mkdir -p /tmp/www/return
-	mkdir -p /tmp/www/uploads
+	systemctl stop nginx.service
+	systemctl stop netdpr.service
+	rm -fdr /var/www/dpr-dev.epss.ucla.edu/
+	mkdir -p /var/www/dpr-dev.epss.ucla.edu/return -m 777
+	mkdir -p /var/www/dpr-dev.epss.ucla.edu/uploads -m 777
 	make -C static/ install-static
 	make -C dcppr/ install-bin
 	make -C proc/ install-proc
