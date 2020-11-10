@@ -25,7 +25,7 @@ int main(int argc, const char* argv[]) {
     cv::medianBlur(frame_gray, frame_blur, 5);
     std::vector<cv::Vec3f> circles;
 
-    cv::HoughCircles(frame_blur, circles, cv::HOUGH_GRADIENT, 1.5, radii * 0.8, 300, 100, 250, 0);
+    cv::HoughCircles(frame_blur, circles, cv::HOUGH_GRADIENT, 1.5, radii * 0.8, 300, 100, radii*0.8, radii*1.2);
 
     if (circles.size() < 1)
         return(-3);

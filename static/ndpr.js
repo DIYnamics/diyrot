@@ -1,19 +1,69 @@
 'use strict';
 
+const getStatusJson = () => {
+	if (document.cookie.indexOf("status") == -1)
+		return JSON.parse("{}")
+	return JSON.parse(document.cookie.split('; ').find(row => row.startsWith('status')).split('=')[1])
+}
 const changeInstruction = text => $( '#status' ).first().html(text)
 const sleep = m => new Promise(r => setTimeout(r, m))
+const saveCookie = (j) => document.cookie = "status=" + JSON.stringify(j) + "; secure"
+const clearCookie = () => document.cookie = "status={}; expires=0; secure"
 
 var center = {x: 0, y: 0}
 var radii = undefined // set to values by user input and after circle
 var scale_factor = undefined
+var drawable = 0
+
+const promptSubmit = () => {
+	const status = getStatusJson()
+	changeInstruction('If this looks like the rotation perimeter, click submit again to have the server derotate your video.')
+	const drawSurf = $( '#drawSurf' )[0].getContext('2d')
+	drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
+	drawSurf.beginPath()
+	drawSurf.arc(status.x / scale_factor, status.y / scale_factor, status.r / scale_factor, 0, 2 * Math.PI)
+	drawSurf.stroke()
+	$( '#sendBut' )[0].style.visibility = "visible"
+}
+
+const pollWait = () => {
+	const status = getStatusJson()
+	if (status.waiting == undefined) {
+		changeInstruction('Done! Pick new file to resubmit.')
+		return
+	}
+	const timesince = Math.floor((Date.now() - status.waiting) / 1000)
+	changeInstruction('Waiting for server to reply... this page will automatically update. \
+		Last refreshed ' + timesince  + ' seconds ago')
+	if (timesince > 7) {
+		status.waiting = Date.now()
+		$( '#videoIn' )[0].load()
+		$( '#videoIn' )[0].play()
+		// what a fucking hack
+			.then(() => {
+				$("body").prepend('<a download href=\"/return/'+status.fn+'\"> Download the video here </a>')
+				clearCookie()}
+			)
+			.catch(() => saveCookie(status))
+	}
+	setTimeout(pollWait, 1000)
+}
 
 // Event Listeners
 $(window).on('load', () => {
-
+	if (getStatusJson().waiting == undefined) {
+		// reset to original if not waiting
+		clearCookie()
+	} else {
+		$( '#videoIn' ).attr('loop', true)
+		$( '#videoIn' ).attr('src', '/return/' + getStatusJson().fn)
+		pollWait()
+	}
 	// element change listeners
 	$( '#fileInput' ).on('change', e => {
 		changeInstruction('Click-drag from center of rotation frame to edge of rotation frame.')
 		$( '#videoIn' ).attr('src', URL.createObjectURL(e.target.files[0]))
+		drawable = 1
 	})
 
 	$( '#videoIn' ).on('loadeddata', e => {
@@ -31,39 +81,93 @@ $(window).on('load', () => {
 		drawSurf.getContext('2d').strokeStyle = 'red'
 	})
 
-	$( '#sendBut' ).on('click', e => {
+	$( '#sendBut' ).on('click', () => {
 		const drawSurf = $( '#drawSurf' )[0].getContext('2d')
-		const r = new FormData()
-		r.append('v', $('#fileInput')[0].files[0])
-		r.append('r', radii)
-		r.append('rpm', Number($('#rpm')[0].value))
-		changeInstruction('we are now sending your video to a mystery epss server at ucla \n no one can save you now')
 		drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
-		$( '#videoIn' )[0].removeAttribute('src')
-		$( '#videoIn' )[0].load()
-		$( '#sendBut' )[0].style.visibility = 'hidden'
-		fetch('/upload/', {method: 'POST', body: r})
-			.then(r => r.text())
-			.then(t => {
-				console.log(t)
-				$( '#videoIn' ).attr('src', t)
-				$( '#videoIn' ).attr('loop', true)
-				$( '#videoIn' )[0].play()
+		if (getStatusJson().fn == undefined) {
+			// this is a regular submission
+			changeInstruction('Uploading to server. Upload progress shown below.')
+			const r = new FormData()
+			r.append('r', radii)
+			r.append('v', $('#fileInput')[0].files[0])
+			$.ajax('/upload/', { method: 'POST', data: r, dataType: 'text',
+				contentType: false, processData: false,
+				beforeSend: () => {
+					drawable = 0
+					$( 'progress' )[0].style.visibility = 'visible'
+					$( '#sendBut' )[0].style.visibility = 'hidden'
+				},
+				success: (d) => {
+					document.cookie = 'status='+d.split('\n')[0]+'; secure'
+					$( 'progress' )[0].style.visibility = 'hidden'
+					promptSubmit()
+				},
+				error: (d) => { 
+					document.cookie = 'status='+d.split('\n')[0]+'; secure'
+					if (getStatusJson().fn == undefined) {
+						changeInstruction('Something went wrong submitting to the server. bugs or something')
+						return
+					}
+					changeInstruction('Your video was uploaded to the server, but it couldn\'t find valid circle. Try again:')
+					drawable = 1
+				},
+				xhr: () => {
+					var myXhr = new window.XMLHttpRequest()
+					myXhr.upload.addEventListener('progress', e => {
+						if (e.lengthComputable) { 
+							$('progress').attr({ value: e.loaded, max: e.total, })
+						}
+					}, false)
+					return myXhr
+				}
 			})
+		}
+		else if (getStatusJson().r == undefined) {
+			// this is a detection submission
+		}
+		else {
+			// this is a derotation submission
+			const status = getStatusJson()
+			const r = new FormData()
+			r.append('v', status.fn)
+			r.append('r', status.r)
+			r.append('x', status.x)
+			r.append('y', status.y)
+			r.append('rpm', $('#rpm')[0].value)
+			$.ajax('/derot/', { method: 'POST', data: r, dataType: 'text',
+				contentType: false, processData: false,
+				beforeSend: () => {
+					drawable = 0
+					$( '#sendBut' )[0].style.visibility = 'hidden'
+				},
+				success: (d) => {
+					var x = getStatusJson()
+					x.waiting = Date.now()
+					x.fn = d
+					$( '#videoIn' ).attr('loop', true)
+					$( '#videoIn' ).attr('src', '/return/' + x.fn)
+					saveCookie(x)
+					pollWait()
+				},
+				error: (d) => { 
+					changeInstruction('Something went wrong submitting to the server. idk bugs or something')
+				}
+			})
+		}
 	})
 
-
-	// Regular Canvas visual circle indicators
-
+	// non-opencv Canvas visual circle indicators
 	$( '#drawSurf' ).on('mousedown', e => {
-		const drawSurf = $( '#drawSurf' )[0].getContext('2d')
-		drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
-		center.x = e.offsetX; center.y = e.offsetY
-		radii = -1
+		if (drawable == 1) {
+			const drawSurf = $( '#drawSurf' )[0].getContext('2d')
+			drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
+			center.x = e.offsetX; center.y = e.offsetY
+			radii = -1
+		}
 	})
 
 	$( '#drawSurf' ).on('mousemove', e => {
-		if(radii == -1 && center.x && center.y) {
+		if(radii == -1 && center.x && center.y && drawable == 1) {
 			const drawSurf = $( '#drawSurf' )[0].getContext('2d')
 			drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
 			drawSurf.beginPath()
@@ -79,10 +183,9 @@ $(window).on('load', () => {
 	}})
 
 	$( '#drawSurf' ).on('mouseup', e => {
-		if(radii == -1) {
+		if(radii == -1 && drawable == 1) {
 			// need to multiply back to get original size
-			radii = Math.sqrt(Math.pow(e.offsetX - center.x, 2) + 
-								Math.pow(e.offsetY - center.y, 2)) * scale_factor
+			radii = Math.sqrt(Math.pow(e.offsetX - center.x, 2) + Math.pow(e.offsetY - center.y, 2)) * scale_factor
 			center.x = 0; center.y = 0
 			$( '#sendBut' )[0].style.visibility = "visible"
 	}})

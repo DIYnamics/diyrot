@@ -1,11 +1,8 @@
+- finish final problem: how to when video is available on server to be loaded (without downloading?)
 - reorg files nicely for reproducibility across servers / easy cleanup / editing [done]
-- add indicator of current progress, make client fetch current processing progress instead of having serving process wait until done
+- add indicator of current progress, make client fetch current processing progress instead of having serving process wait until done [done]
+- add /delete endpoint to window.onclose (check actual event name) to inform server to delete done video
 - add logging / rate limiting
 - add special code to allow touch devices (ipad/phone) to draw circle
-- add cookies to survive refresh
+- add cookies to survive refresh [done]
 - add c o l o r and style
-
-/var/www/dpr-dev.epss.ucla.edu/{static}
-and media/ for uploads
-additional folders in uploads
-make sure permissions are ok
