@@ -5,7 +5,7 @@ import subprocess
 from flask import Flask, request, send_file, send_from_directory, url_for, jsonify
 from werkzeug.utils import secure_filename
 
-_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'
+_root_dir = '/var/www/diyrot.epss.ucla.edu/'
 random.seed()
 
 app = Flask(__name__)

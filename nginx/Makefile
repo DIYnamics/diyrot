@@ -1,4 +1,4 @@
-SITE_NAME = dpr-dev.epss.ucla.edu
+SITE_NAME = diyrot.epss.ucla.edu
 
 install-nginx:
 	cp $(SITE_NAME) /etc/nginx/sites-available/
