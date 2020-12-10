@@ -10,7 +10,7 @@ random.seed()
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = _root_dir + '/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024
 
 # used in development only
 @app.route('/')
@@ -40,9 +40,11 @@ def save():
         v.close()
         x,y,r = opencv_detect(vpath, r)
     except subprocess.CalledProcessError:
+        print('errored')
         return jsonify({'fn': vname}), 400
     except:
         return {}, 500
+    print('succ')
     return jsonify({'fn': vname, 'x': x, 'y': y, 'r': r}), 200
 
 @app.route('/detect/', methods=['POST'])
