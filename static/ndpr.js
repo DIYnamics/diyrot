@@ -17,7 +17,8 @@ var drawable = 0
 
 const promptSubmit = () => {
 	const status = getStatusJson()
-	changeInstruction('If this looks like the rotation perimeter, click submit again to have the server derotate your video.')
+    changeInstruction('Step 4/5: verify. The server has received your file and automatically detected the rotation perimeter.\n \
+    If this looks correct, click submit again to have the server derotate your video.')
 	const drawSurf = $( '#drawSurf' )[0].getContext('2d')
 	drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
 	drawSurf.beginPath()
@@ -29,11 +30,11 @@ const promptSubmit = () => {
 const pollWait = () => {
 	const status = getStatusJson()
 	if (status.waiting == undefined) {
-		changeInstruction('Done! Pick new file to resubmit.')
+		changeInstruction('Done! Pick new file to start again, or download from the link above.')
 		return
 	}
 	const timesince = Math.floor((Date.now() - status.waiting) / 1000)
-	changeInstruction('Waiting for server to reply... this page will automatically update. \
+    changeInstruction('Step 5/5: Waiting for server to reply... this page will automatically update. \
 		Last refreshed ' + timesince  + ' seconds ago')
 	if (timesince > 7) {
 		status.waiting = Date.now()
@@ -61,7 +62,7 @@ $(window).on('load', () => {
 	}
 	// element change listeners
 	$( '#fileInput' ).on('change', e => {
-		changeInstruction('Click-drag from center of rotation frame to edge of rotation frame.')
+        changeInstruction('Step 2/5: select your rotation circle. Draw a line from the center of rotation to anywhere on the perimeter. This does not have to be precise. Click upload when done.')
 		$( '#videoIn' ).attr('src', URL.createObjectURL(e.target.files[0]))
 		drawable = 1
 	})
@@ -86,7 +87,7 @@ $(window).on('load', () => {
 		drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
 		if (getStatusJson().fn == undefined) {
 			// this is a regular submission
-			changeInstruction('Uploading to server. Upload progress shown below.')
+            changeInstruction('Step 3/5: uploading to server. Upload progress shown below.')
 			const r = new FormData()
 			r.append('r', radii)
 			r.append('v', $('#fileInput')[0].files[0])
