@@ -10,7 +10,8 @@ uwsgi-log:
 
 install:
 	systemctl stop nginx.service
-	systemctl stop netdpr.service
+	#build fails b/c service not loaded on fresh repo clone
+	#systemctl stop netdpr.service
 	rm -fdr /var/www/diyrot.epss.ucla.edu/
 	mkdir -p /var/www/diyrot.epss.ucla.edu/return -m 777
 	mkdir -p /var/www/diyrot.epss.ucla.edu/uploads -m 777
