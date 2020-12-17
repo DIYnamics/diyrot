@@ -1,10 +1,10 @@
 server {
 	
-	listen 80
+	listen 80;
     
 	client_max_body_size 1000M;
 
-	root /var/www/dpr-dev.epss.ucla.edu;
+	root /var/www/diyrot.epss.ucla.edu;
 
 	server_name diyrot.epss.ucla.edu;
 
@@ -35,6 +35,6 @@ server {
 	}
 
     
- 
+
 
 }
