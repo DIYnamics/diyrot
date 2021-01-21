@@ -3,3 +3,4 @@
 **/*.mp4
 tags*
 .vscode
+test_root/*

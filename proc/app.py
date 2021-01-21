@@ -6,6 +6,9 @@ from flask import Flask, request, send_file, send_from_directory, url_for, jsoni
 from werkzeug.utils import secure_filename
 
 _root_dir = '/var/www/diyrot.epss.ucla.edu/'
+if 'ROOT_DIR' in os.environ:
+    _root_dir = os.environ['ROOT_DIR']
+print('Current root dir: ' + _root_dir)
 random.seed()
 
 app = Flask(__name__)
@@ -39,12 +42,8 @@ def save():
         v.save(vpath)
         v.close()
         x,y,r = opencv_detect(vpath, r)
-    except subprocess.CalledProcessError:
-        print('errored')
-        return jsonify({'fn': vname}), 400
     except:
-        return {}, 500
-    print('succ')
+        return jsonify({'fn': vname}), 400
     return jsonify({'fn': vname, 'x': x, 'y': y, 'r': r}), 200
 
 @app.route('/detect/', methods=['POST'])

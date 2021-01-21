@@ -62,7 +62,8 @@ $(window).on('load', () => {
 	}
 	// element change listeners
 	$( '#fileInput' ).on('change', e => {
-        changeInstruction('Step 2/5: select your rotation circle. Draw a line from the center of rotation to anywhere on the perimeter. This does not have to be precise. Click upload when done.')
+        changeInstruction('Step 2/5: select your rotation circle. Draw a line from the center of rotation to anywhere on the perimeter. \
+			This does not have to be precise. Click upload when done.')
 		$( '#videoIn' ).attr('src', URL.createObjectURL(e.target.files[0]))
 		drawable = 1
 	})
@@ -71,7 +72,7 @@ $(window).on('load', () => {
 		const vidIn = $( '#videoIn' )[0]
 		const canv = $( '#drawSurf' )[0]
 		let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
-		scale_factor = Math.max(og_h, og_w) / Math.min(window.screen.availHeight, window.screen.availWidth)
+		scale_factor = Math.max(og_h / window.screen.availHeight, og_w / $( '#vidDiv' )[0].offsetWidth)
 		scale_factor = (scale_factor > 1) ? scale_factor : 1
 		vidIn.height = Math.round(og_h / scale_factor)
 		vidIn.width = Math.round(og_w / scale_factor)
@@ -86,8 +87,8 @@ $(window).on('load', () => {
 		const drawSurf = $( '#drawSurf' )[0].getContext('2d')
 		drawSurf.clearRect(0, 0, drawSurf.canvas.width, drawSurf.canvas.height)
 		if (getStatusJson().fn == undefined) {
-			// this is a regular submission
-            changeInstruction('Step 3/5: uploading to server. Upload progress shown below.')
+			// file is not on server, this is a new upload
+			changeInstruction('Step 3/5: uploading to server. Upload progress shown below.')
 			const r = new FormData()
 			r.append('r', radii)
 			r.append('v', $('#fileInput')[0].files[0])
@@ -104,7 +105,7 @@ $(window).on('load', () => {
 					promptSubmit()
 				},
 				error: (d) => { 
-					document.cookie = 'status='+d.split('\n')[0]+'; secure'
+					document.cookie = 'status='+d.responseText.split('\n')[0]+'; secure'
 					if (getStatusJson().fn == undefined) {
 						changeInstruction('Something went wrong submitting to the server. bugs or something')
 						return
@@ -124,7 +125,11 @@ $(window).on('load', () => {
 			})
 		}
 		else if (getStatusJson().r == undefined) {
-			// this is a detection submission
+			// this is a "try again submission"
+			changeInstruction('Step 3/5: uploading to server. Upload progress shown below.')
+			const r = new FormData()
+			r.append('r', radii)
+			r.append('v', $('#fileInput')[0].files[0])
 		}
 		else {
 			// this is a derotation submission
