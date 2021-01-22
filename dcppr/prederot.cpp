@@ -33,24 +33,28 @@ int main(int argc, const char* argv[]) {
         return(-2);
 
     int fps = vid.get(cv::CAP_PROP_FPS);
-    //int total_frames = vid.get(cv::CAP_PROP_FRAME_COUNT);
     auto dims = cv::Size(vid.get(cv::CAP_PROP_FRAME_WIDTH), vid.get(cv::CAP_PROP_FRAME_HEIGHT));
     cv::Mat center_mask = cv::Mat::zeros(dims, CV_8UC1);
     cv::Mat out_frame;
     cv::circle(center_mask, circ, radii, 255, -1);
 
-    auto vidout = cv::VideoWriter(outfn, codec, fps, dims);
+    int skip = fps / 10;
+    auto vidout = cv::VideoWriter(outfn, codec, 10, dims);
     int i = 0;
+    int j = 0;
     double dtheta = -6 * rpm / (double) fps;
 
     if (!vidout.isOpened())
         return(-2);
 
-    do {
-        cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i++ * dtheta, 1.0), dims);
+    while(i < (50*skip)) {
+        for (j = 0; j < skip; j++)
+            vid.read(vid_frame);
+        i += skip;
+        cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i * dtheta, 1.0), dims);
         vid_frame.copyTo(out_frame, center_mask);
         vidout << out_frame;
-    } while(vid.read(vid_frame));
+    }
 
     vidout.release();
     return EXIT_SUCCESS;

@@ -8,13 +8,17 @@
 #include <opencv2/opencv.hpp>
 
 int main(int argc, const char* argv[]) {
-    if (argc != 3)
+    if (argc < 2)
         return(-1);
     const char* filename = argv[1];
-    double radii = strtod(argv[2], NULL);
+    double radii;
+    auto vid = cv::VideoCapture(filename);
+    if (argc == 2)
+        radii = std::min(vid.get(cv::CAP_PROP_FRAME_WIDTH), vid.get(cv::CAP_PROP_FRAME_HEIGHT)) * 0.3;
+    else 
+        radii = strtod(argv[2], NULL);
     if (!radii || errno == ERANGE)
         return(-1);
-    auto vid = cv::VideoCapture(filename);
     cv::Mat frame;
     if (!vid.read(frame) || !radii)
         return(-2);
@@ -25,7 +29,8 @@ int main(int argc, const char* argv[]) {
     cv::medianBlur(frame_gray, frame_blur, 5);
     std::vector<cv::Vec3f> circles;
 
-    cv::HoughCircles(frame_blur, circles, cv::HOUGH_GRADIENT, 1.5, radii * 0.8, 300, 100, radii*0.8, radii*1.2);
+    cv::HoughCircles(frame_blur, circles, cv::HOUGH_GRADIENT, 1.5, 
+        std::min(vid.get(cv::CAP_PROP_FRAME_WIDTH), vid.get(cv::CAP_PROP_FRAME_HEIGHT)) * 0.3, 300, 100);
 
     if (circles.size() < 1)
         return(-3);

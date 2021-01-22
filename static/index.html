@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1"/>
-	<title>Net Digipyro</title>
+	<title>DIYRotate</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 	<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"
@@ -23,25 +23,23 @@
 	<header>
 		<nav class="bg-light">
 			<div class="container-fluid">
-				<a class="navbar-brand" href="#">Net Digipyro</a>
-				<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-					data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-					aria-expanded="false" aria-label="Toggle navigation">
-					<span class="navbar-toggler-icon"></span>
+				<a class="navbar-brand" href="#">DIYRotate</a>
 				</button>
 	</header>
 	<div class="container mt-3">
 		<div class="row">
-			<p class="alert alert-info" id="status">DIYrotate is ready. <br> Step 1/5: click button below to select
-				video to derotate.</p>
+			<p class="alert alert-info" id="status">DIYrotate is ready. <br> Select
+				video file to derotate below.</p>
 			<progress style="visibility:hidden"></progress>
 			<div class=col>
 				<label class="form-label" for="fileInput">Select a file</label>
 				<input class="form-control" type="file" id="fileInput" accept="video/*" />
-				<label class="form-label" for="rpm">RPM of rotating frame </label>
-				<input class="form-control" type="number" id="rpm" value=10 />
+				<label class="form-label" for="rpm">RPM of rotating frame (positive is counterclockwise) </label>
+				<input class="form-control" type="text" id="rpm" value=10.0 />
 				<br>
-				<input class="btn btn-info form-control" type="submit" id="sendBut" value="submit"
+				<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust"
+					style="visibility:hidden" />
+				<input class="btn btn-info form-control" type="submit" id="derotBut" value="Derotate"
 					style="visibility:hidden" />
 			</div>
 		</div>
