@@ -239,6 +239,11 @@ $(window).on('load', () => {
 	}})
 	
 	// is there a valid waiting cookie? if not, ignore
-	if (getState().waiting == undefined)
+	if (getState().waiting == undefined) {
 		clearState();
+	}
+	else {
+		$( '#videoIn' )[0].src = '/return/' + getState().src;
+		pollWait();
+	}
 })
