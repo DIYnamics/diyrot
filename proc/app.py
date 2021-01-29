@@ -5,7 +5,7 @@ import subprocess
 from flask import Flask, request, send_file, send_from_directory, url_for, jsonify
 from werkzeug.utils import secure_filename
 
-_root_dir = '/var/www/diyrot.epss.ucla.edu/'
+_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'
 if 'ROOT_DIR' in os.environ:
     _root_dir = os.environ['ROOT_DIR']
 print('Current root dir: ' + _root_dir)
@@ -43,7 +43,8 @@ def save():
         v.close()
         x,y,r = opencv_detect(vpath)
         preview_fn = opencv_preview(vname, x, y, r, request.form['rpm'])
-    except:
+    except Exception as e:
+        print(" ".join(["error in upload", str(request.form), str(e)]), flush=True)
         return jsonify({'fn': vname}), 400
     return jsonify({'fn': vname, 'x': x, 'y': y, 'r': r, 'src': '/return/'+preview_fn}), 200
 
@@ -55,7 +56,8 @@ def prev():
              float(request.form['y']), \
              float(request.form['r']), \
              float(request.form['rpm']))
-    except:
+    except Exception as e:
+        print(" ".join(["error in preview", str(request.form), str(e)]), flush=True)
         return "", 500
     return jsonify({'fn': request.form['v'],
                     'x': request.form['x'],
@@ -72,7 +74,8 @@ def derot():
              float(request.form['r']), \
              float(request.form['rpm']))
         return r, 200
-    except:
+    except Exception as e:
+        print(" ".join(["error in derot", str(request.form), str(e)]), flush=True)
         return "", 500
 
 
@@ -90,7 +93,7 @@ def opencv_preview(vidfn, x, y, r, rpm):
 
 def opencv_derot(vidfn, x, y, r, rpm):
     fn, extn = os.path.splitext(vidfn)
-    fn += "-derot"
+    fn = "_".join(['diyrot', str(round(rpm))+'rpm', str(fn), 'derot'])
     subprocess.Popen([_root_dir+'/bin/derot',
                         os.path.join(_root_dir, 'uploads', vidfn),
                         str(x), str(y), str(r), str(rpm),
