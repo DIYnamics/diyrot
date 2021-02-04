@@ -30,13 +30,18 @@ flask
 
 ## Server info
 
+*Please note the nginx/uwsgi targets have been superseded by an Ansible playbook
+located
+[here](https://github.com/ucla-earth-planetary-and-space-sciences/diyrotate-playbooks/tree/main/roles/dpr-production-deploy).*  
+*The targets are still provided for reference.*
+
 Running `make install` will create the following folders and files:
 
 ```
 /bin/derot
 /bin/radii-check
 /var/www/diyrot.epss.ucla.edu/*
-/etc/nginx/{sites-available, sites-enabled}/diyrot.epss.ucla.edu
+/etc/nginx/{sites-available,sites-enabled}/diyrot.epss.ucla.edu
 /etc/systemd/system/netdpr.service
 ```
 
