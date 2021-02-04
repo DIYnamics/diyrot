@@ -4,9 +4,9 @@ server {
     
 	client_max_body_size 1000M;
 
-	root /var/www/diyrot.epss.ucla.edu;
+	root /var/www/site.tld;
 
-	server_name diyrot.epss.ucla.edu;
+	server_name site.tld;
 
 	location /bin/ {
 		deny all;

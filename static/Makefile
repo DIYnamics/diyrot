@@ -1,2 +1,2 @@
 install-static:
-	cp favicon.ico index.html ndpr.js /var/www/$(site)/
+	cp favicon.ico index.html ndpr.js $(ROOT_DIR)/$(site)/

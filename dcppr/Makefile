@@ -11,7 +11,7 @@ prederot:
 	g++ -O3 -I/usr/include/opencv4/ prederot.cpp -o prederot -L`pkg-config --libs opencv4`
 
 install-bin: radii derot prederot
-	mkdir -p /var/www/$(site)/bin
-	cp radii_check /var/www/$(site)/bin/radii_check
-	cp derot /var/www/$(site)/bin/derot
-	cp prederot /var/www/$(site)/bin/prederot
+	mkdir -p $(ROOT_DIR)/$(site)/bin
+	cp radii_check $(ROOT_DIR)/$(site)/bin/radii_check
+	cp derot $(ROOT_DIR)/$(site)/bin/derot
+	cp prederot $(ROOT_DIR)/$(site)/bin/prederot
