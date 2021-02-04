@@ -9,11 +9,11 @@
 - use a practice video
 - github page tutorial for diyrotate
 - video tutorial link on page
-- make output filename diyrotate+rot rate+rand+.mp4]
-- visitor counter [Rod]
+- make output filename diyrotate+rot rate+rand+.mp4 (done)
+- visitor counter [Rod] (GA analytics added)
 - bootstrap pretty website [logos spin/diy/epss]
 - add /delete endpoint to window.onclose (check actual event name) to inform server to delete done video
-- add logging / rate limiting
+- add logging / rate limiting (logging done)
 - add special code to allow touch devices (ipad/phone) to draw circle
 - proof on concept 
     - 'show slow derotation into frame'
