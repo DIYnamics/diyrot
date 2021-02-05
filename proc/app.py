@@ -32,6 +32,14 @@ def netdprjs():
 def retvid(vid):
     return send_file(_root_dir + '/return/' + vid)
 
+@app.route('/spin-logo.png')
+def spinlogo():
+    return send_file('../static/spin-logo.png')
+
+@app.route('/diynamics-logo.png')
+def diylogo():
+    return send_file('../static/diynamics-logo.png')
+
 # actual production methods
 @app.route('/upload/', methods=['POST'])
 def save():
@@ -101,4 +109,4 @@ def opencv_derot(vidfn, x, y, r, rpm):
     return fn+extn
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8081)
