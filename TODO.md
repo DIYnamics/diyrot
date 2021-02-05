@@ -16,5 +16,5 @@
 - add logging / rate limiting (logging done)
 - add special code to allow touch devices (ipad/phone) to draw circle
 - proof on concept 
-    - 'show slow derotation into frame'
-    - side by side mode
+    - 'show slow derotation into frame' [done, bad]
+    - side by side mode [done]
