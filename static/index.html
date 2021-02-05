@@ -39,14 +39,16 @@
 	</header>
 	<div class="container mt-3">
 		<div class="row">
-			<p class="alert alert-info" id="status">DIYRotate is ready. <br> Select
-				video file to derotate below.</p>
+			<p class="alert alert-info" style="font-size: 15px; font-weight: bold;" id="status">
+				Specify the rate of derotation, then a select video file to derotate below.
+				<br> Need help? Check out the <a href="https://github.com/OrangeRoof/diyrot/wiki"> wiki </a></p>
 			<progress style="visibility:hidden"></progress>
 			<div class=col>
-				<label class="form-label" for="fileInput">Select a file</label>
-				<input class="form-control" type="file" id="fileInput" accept="video/*" />
 				<label class="form-label" for="rpm">RPM of rotating frame (positive is counterclockwise) </label>
 				<input class="form-control" type="text" id="rpm" value=10.0 />
+				<br>
+				<label class="form-label" for="fileInput">Select a file</label>
+				<input class="form-control" type="file" id="fileInput" accept="video/*" />
 				<br>
 				<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust"
 					style="visibility:hidden" />

@@ -11,7 +11,7 @@
 - video tutorial link on page
 - make output filename diyrotate+rot rate+rand+.mp4 (done)
 - visitor counter [Rod] (GA analytics added)
-- bootstrap pretty website [logos spin/diy/epss]
+- bootstrap pretty website [logos spin/diy/epss] (done)
 - add /delete endpoint to window.onclose (check actual event name) to inform server to delete done video
 - add logging / rate limiting (logging done)
 - add special code to allow touch devices (ipad/phone) to draw circle
