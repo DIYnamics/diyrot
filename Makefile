@@ -23,8 +23,8 @@ install:
 	#make -C nginx/ install-nginx
 
 uninstall:
-	systemctl stop nginx.service
-	systemctl stop netdpr.service
+	#systemctl stop nginx.service
+	#systemctl stop netdpr.service
 	rm -fdr $(ROOT_DIR)/$(site)/
 
 reinstall: uninstall install
