@@ -6,9 +6,10 @@
 - add c o l o r and style [done]
 
 
-- use a practice video
-- github page tutorial for diyrotate
-- video tutorial link on page
+- use a practice video [done]
+- make all return 200s
+- github page tutorial for diyrotate [ongoing haha]
+- video tutorial link on page [doneish]
 - make output filename diyrotate+rot rate+rand+.mp4 (done)
 - visitor counter [Rod] (GA analytics added)
 - bootstrap pretty website [logos spin/diy/epss] (done)
@@ -18,3 +19,4 @@
 - proof on concept 
     - 'show slow derotation into frame' [done, bad]
     - side by side mode [done]
+- add dreded documentation
