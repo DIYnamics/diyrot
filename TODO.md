@@ -20,3 +20,5 @@
     - 'show slow derotation into frame' [done, bad]
     - side by side mode [done]
 - add dreded documentation
+- make PREVIEW more clear
+- side by side add text showing each
