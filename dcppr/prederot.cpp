@@ -4,20 +4,10 @@
 #include <libgen.h>
 #include <opencv2/opencv.hpp>
 
-const std::string allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 auto codec = cv::VideoWriter::fourcc('a', 'v', 'c', '1');
 
-std::string randstr() {
-    std::string out (10, 'x');
-    for (int i = 0; i < 10; i++)
-        out[i] = allowed[std::rand() % allowed.length()];
-    return out;
-}
-
 int main(int argc, const char* argv[]) {
-    //std::srand((unsigned int) std::chrono::system_clock::now().time_since_epoch().count());
-
-    // ./bin FILE X Y R RPM OUTFILE
+   // ./bin FILE X Y R RPM OUTFILE
     if (argc != 7)
         return(-1);
     char* filename = (char*) argv[1];
