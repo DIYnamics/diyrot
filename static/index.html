@@ -44,21 +44,28 @@
 	<div class="container mt-3">
 		<div class="row">
 			<p class="alert alert-info" style="font-size: 15px; font-weight: bold;" id="status">
-				Specify the rate of derotation, then a select video file to derotate below.
+				Specify the rate of derotation, then select a video file to derotate.
 				<br> Need help? Don't have a spinny table set up yet? Check out the <a href="https://github.com/OrangeRoof/diyrot/wiki"> wiki for tutorials and examples.</a></p>
-			<progress style="visibility:hidden"></progress>
-			<div class=col>
-				<label class="form-label" for="rpm">RPM of rotating frame (positive is counterclockwise) </label>
-				<input class="form-control" type="text" id="rpm" value=10.0 />
-				<br>
-				<label class="form-label" for="fileInput">Select a file</label>
-				<input class="form-control" type="file" id="fileInput" accept="video/*" />
-				<br>
-				<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust"
-					style="visibility:hidden" />
-				<input class="btn btn-info form-control" type="submit" id="derotBut" value="Derotate"
-					style="visibility:hidden" />
+			<div class="row">
+				<div class="col">
+					<label class="form-label" for="rpm">RPM of rotating frame (positive is counterclockwise) </label>
+					<input class="form-control" type="text" id="rpm" value=10.0 />
+				</div>
+				<div class="col">
+					<label class="form-label" for="fileInput">Select a file</label>
+					<input class="form-control" type="file" id="fileInput" accept="video/*" />
+				</div>
 			</div>
+			<div class="row">
+					<label class="form-check-label"> Advanced: show derotated and original frames, side by side (not available in preview)  <label/>
+					<input class="form-check-input" type="checkbox" id="sideBS"/>
+			</div>
+			<br>
+			<progress style="visibility:hidden"></progress>
+			<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust"
+				style="visibility:hidden;background-color:red" />
+			<input class="btn btn-info form-control" type="submit" id="derotBut" value="Derotate"
+				style="visibility:hidden" />
 		</div>
 		<div class="row mt-3 p-0">
 			<div id="vidDiv" class='col'>
@@ -69,7 +76,7 @@
 	</div>
 	<hr>
 	<footer class="footer navbar-inverse">
-		<div class="container" style="font-size:x-small">
+		<div class="container" style="font-size:small">
 			DIYrotate was created by 
 			<a href="https://alch.dev">Alex Chen</a>, with guidance and support from 
 			<a href="https://epss.ucla.edu/people/faculty/543/">Jon Aurnou</a> and 
