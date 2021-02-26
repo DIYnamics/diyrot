@@ -140,7 +140,6 @@ const submitRot = () => {
 			hideEl($('#previewBut')[0])
 		},
 		success: (d) => {
-			$( '#videoIn' )[0].src = '/return/' + d
 			setState('src', d)
 			setState('waiting', Date.now())
 			pollWait()
@@ -160,10 +159,14 @@ const pollWait = () => {
 		Last refreshed ' + timesince  + ' seconds ago')
 	if (timesince > 7) {
 		status.waiting = Date.now()
-		$( '#videoIn' )[0].load()
-		$( '#videoIn' )[0].play()
-			.then(() =>  setState('waiting', undefined))
-			.catch(() => saveState(JSON.stringify(status)))
+		$.ajax('/return/'+getState().src, {method: 'HEAD',
+			success: () => {
+				setState('waiting', undefined)
+			},
+			error: () => {
+				saveState(JSON.stringify(status))
+			},
+		})
 	}
 	setTimeout(pollWait, 1000)
 }
@@ -243,7 +246,6 @@ $(window).on('load', () => {
 		clearState();
 	}
 	else {
-		$( '#videoIn' )[0].src = '/return/' + getState().src;
 		pollWait();
 	}
 })
