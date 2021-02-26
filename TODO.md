@@ -12,11 +12,12 @@ Done:
 - bootstrap pretty website [logos spin/diy/epss] (done)
 - add logging / rate limiting (logging done)
 - make all return 200s (done)
+- make pictures go to links (done)
+- visitor counter (GA analytics added) (doneish)
 
 TODO: 
-- add dreded documentation
 - make PREVIEW more clear
 - side by side option [done]
 - side by side add text showing each
-- visitor counter (GA analytics added)
 - add special code to allow touch devices (ipad/phone) to draw circle
+- add dreded documentation

@@ -182,6 +182,13 @@ const setVideo = (vl, cb = () => {} ) => {
 
 // Event Listeners
 $(window).on('load', () => {
+	// site counter
+	$.ajax('/count', {
+		success: (d) => {
+			$( '#useCount' ).first().html("This version of the website has been used approximately " + d + " times.")
+	}})
+
+
 	// element change listeners
 	$( '#fileInput' ).on('change', e => {
 		setVideo(URL.createObjectURL(e.target.files[0]))
