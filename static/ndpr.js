@@ -190,11 +190,6 @@ const setVideo = (vl, cb = () => {} ) => {
 	vid.loop = true
 	vid.src = vl
 	vid.load()
-    let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
-    const scale_factor = Math.max(og_h / window.screen.availHeight, og_w / $( '#vidDiv' )[0].offsetWidth)
-    vidIn.scale_factor = (scale_factor > 1) ? scale_factor : 1
-    vidIn.height = Math.round(og_h / vidIn.scale_factor)
-    vidIn.width = Math.round(og_w / vidIn.scale_factor)
 	vid.play().then(cb())
 }
 
@@ -217,8 +212,8 @@ $(window).on('load', () => {
 		let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
 		const scale_factor = Math.max(og_h / window.screen.availHeight, og_w / $( '#vidDiv' )[0].offsetWidth)
 		vidIn.scale_factor = (scale_factor > 1) ? scale_factor : 1
-		vidIn.height = Math.round(og_h / vidIn.scale_factor * 0.9)
-		vidIn.width = Math.round(og_w / vidIn.scale_factor * 0.9)
+		vidIn.height = Math.round(og_h / vidIn.scale_factor)
+		vidIn.width = Math.round(og_w / vidIn.scale_factor)
 	})
 
 	$( '#previewBut' ).on('click', e => {
