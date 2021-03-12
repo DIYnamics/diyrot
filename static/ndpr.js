@@ -9,8 +9,8 @@ const changeSuccess = () => $('#status').attr('class', 'alert alert-success')
 const sleep = m => new Promise(r => setTimeout(r, m))
 
 // State cookie functions
-const saveState = (j) => document.cookie = "state=" + j + "; secure"
-const clearState = () => document.cookie = "state={}; expires=0; secure"
+const saveState = (j) => document.cookie = "state=" + j + ";"
+const clearState = () => document.cookie = "state={}; expires=0;"
 
 const getState = () => {
 	if (document.cookie.indexOf("state") == -1)
@@ -162,7 +162,7 @@ const pollWait = () => {
 	if (status.waiting == undefined) {
 		changeSuccess()
 		changeInstruction('Done! Click <a download href=\"/return/'+getState().src+'\"> here </a> \
-			to download the fully processed video. <br> Refresh the page to derotate another video.')
+			to download the fully processed, high resolution video. <br> Refresh the page to derotate another video.')
 		clearState()
 		return
 	}
@@ -198,7 +198,7 @@ $(window).on('load', () => {
 	// site counter
 	$.ajax('/count', {
 		success: (d) => {
-			$( '#useCount' ).first().html("This version of the website has been used approximately " + d + " times.")
+			$( '#useCount' ).first().html("This website has been used approximately " + d + " times since the last version update.")
 	}})
 
 
@@ -227,8 +227,47 @@ $(window).on('load', () => {
 
 	$( '#derotBut' ).on('click', e =>  submitRot() )
 
+	const getTouchPos = (canvasDom, touchEvent) => {
+		var rect = canvasDom.getBoundingClientRect();
+		return {
+			x: touchEvent.touches[0].clientX - rect.left,
+			y: touchEvent.touches[0].clientY - rect.top
+		};
+	}
+
 	// non-opencv Canvas visual circle listeners
 	const canv = $( '#drawSurf' )[0]
+	
+	// touch translators
+	canv.addEventListener('touchstart', e => {
+		e.preventDefault();
+		var mousePos = getTouchPos(canv, e);
+		var mouseEvent = new MouseEvent("mousedown", {
+			clientX: mousePos.x,
+			clientY: mousePos.y
+		});
+		canv.dispatchEvent(mouseEvent);
+	})
+	// TODO: touchend does not actually have coordinates equivalent to mouseup
+	canv.addEventListener('touchend', e => {
+		e.preventDefault();
+		var mousePos = getTouchPos(canv, e);
+		var mouseEvent = new MouseEvent("mouseup", {
+			clientX: mousePos.x,
+			clientY: mousePos.y
+		});
+		canv.dispatchEvent(mouseEvent);
+	})
+	canv.addEventListener("touchmove", function (e) {
+		e.preventDefault();
+		var mousePos = getTouchPos(canv, e);
+		var mouseEvent = new MouseEvent("mousemove", {
+			clientX: mousePos.x,
+			clientY: mousePos.y
+		});
+		canv.dispatchEvent(mouseEvent);
+	})
+
 	canv.addEventListener('mousedown', e => {
 		if (canv.drawable == true) {
 			const canvctxt = $( '#drawSurf' )[0].getContext('2d')

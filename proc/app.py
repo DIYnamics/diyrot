@@ -86,7 +86,7 @@ def derot():
         print(" ".join(["error in derot", str(request.form), str(e)]), flush=True)
         return "", 500
 
-@app.route('/count')
+@app.route('/count/')
 def update_count():
     c = 0
     try:
@@ -96,7 +96,7 @@ def update_count():
         pass
     with open('count', 'w+') as f:
         f.write(str(c+1))
-    return "{:.0E}".format(c), 200
+    return str(c), 200
 
 def opencv_detect(vidfp):
     return subprocess.check_output([_root_dir + '/bin/radii_check', vidfp], text=True).split()

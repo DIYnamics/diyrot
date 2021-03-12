@@ -14,10 +14,16 @@ Done:
 - make all return 200s (done)
 - make pictures go to links (done)
 - visitor counter (GA analytics added) (doneish)
+- side by side option [done]
 
 TODO: 
-- make PREVIEW more clear
-- side by side option [done]
+- add special code to allow touch devices (ipad/phone) to draw circle (need test)
 - side by side add text showing each
-- add special code to allow touch devices (ipad/phone) to draw circle
 - add dreded documentation
+
+remember:
+- new count/ endpoint needs nginx update (on rod's end)
+
+bugfixes:
+- adjust does not actually visualize circle correctly
+- should be able to drag circle around (tint surface maybe?) to change the thign
