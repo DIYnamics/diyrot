@@ -1,5 +1,5 @@
 .PHONY: derot radii prederot
-default: radii derot
+default: install-bin
 
 radii:
 	g++ -O3 -I/usr/include/opencv4/ radii_check.cpp -o radii_check -L`pkg-config --libs opencv4`

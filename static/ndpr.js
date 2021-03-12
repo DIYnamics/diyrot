@@ -2,11 +2,15 @@
 
 // Utility function
 const changeInstruction = text => $( '#status' ).first().html(text)
+const changeInfo = () => $('#status').attr('class', 'alert alert-info')
+const changeWarning = () => $('#status').attr('class', 'alert alert-warning')
+const changeDanger = () => $('#status').attr('class', 'alert alert-danger')
+const changeSuccess = () => $('#status').attr('class', 'alert alert-success')
 const sleep = m => new Promise(r => setTimeout(r, m))
 
 // State cookie functions
-const saveState = (j) => document.cookie = "state=" + j + "; secure"
-const clearState = () => document.cookie = "state={}; expires=0; secure"
+const saveState = (j) => document.cookie = "state=" + j + ";"
+const clearState = () => document.cookie = "state={}; expires=0;"
 
 const getState = () => {
 	if (document.cookie.indexOf("state") == -1)
@@ -49,6 +53,7 @@ const dropManual = () => {
 	hideEl($( '#derotBut' )[0])
 	$( '#rpm' )[0].disabled = false
 	$( '#previewBut' )[0].value = "Preview"
+	changeInfo()
 	changeInstruction('Manually changing rotation circle or RPM. The auto-detected \
 	rotation circle (if found) is drawn. To specify the rotation circle \
 	yourself, click-drag your mouse from the circle center to anywhere \
@@ -73,10 +78,12 @@ const submitPreview = (newSub) => {
 	if (newSub) {
 		// file is not on server, this is a new upload
 		r.append('v', $('#fileInput')[0].files[0])
+		changeInfo()
 		changeInstruction('Uploading to server, see progress bar below.')
 	}
 	else {
 		// otherwise, submit all for a preview
+		changeInfo()
 		changeInstruction('Generating new preview...')
 		var s = getState()
 		r.append('v', s.fn)
@@ -96,6 +103,7 @@ const submitPreview = (newSub) => {
 		success: (d) => {
 			saveState(d.split('\n')[0])
 			setVideo(getState().src)
+			changeWarning()
 			changeInstruction('Here is a rough preview of the first few seconds of the derotated video. <br> \
 				Make sure the video looks correctly derotated; if so, click \'Derotate\' \
 				to get process the full video and get a download link. <br> If the \
@@ -104,6 +112,7 @@ const submitPreview = (newSub) => {
 		},
 		error: (d) => { 
 			saveState(d.responseText.split('\n')[0])
+			changeDanger()
 			changeInstruction('Your video was uploaded to the server, but the server couldn\'t find valid circle. <br> \
 				Click \'Adjust\' to manually configure parameters, or pick a new file.')
 		},
@@ -117,6 +126,7 @@ const submitPreview = (newSub) => {
 				if (e.lengthComputable) 
 					$('progress').attr({ value: e.loaded, max: e.total, })
 				if (e.loaded == e.total)
+					changeInfo()
 					changeInstruction('Give the server a few seconds to generate a preview...')
 			}, false)
 			return myXhr
@@ -132,6 +142,7 @@ const submitRot = () => {
 	r.append('x', status.x)
 	r.append('y', status.y)
 	r.append('rpm', $('#rpm')[0].value)
+	r.append('sbs', $('#sideBS')[0].checked)
 	$.ajax('/derot/', { method: 'POST', data: r, dataType: 'text',
 		contentType: false, processData: false,
 		beforeSend: () => {
@@ -140,7 +151,6 @@ const submitRot = () => {
 			hideEl($('#previewBut')[0])
 		},
 		success: (d) => {
-			$( '#videoIn' )[0].src = '/return/' + d
 			setState('src', d)
 			setState('waiting', Date.now())
 			pollWait()
@@ -150,20 +160,26 @@ const submitRot = () => {
 const pollWait = () => {
 	const status = getState()
 	if (status.waiting == undefined) {
+		changeSuccess()
 		changeInstruction('Done! Click <a download href=\"/return/'+getState().src+'\"> here </a> \
-			to download the fully processed video.')
+			to download the fully processed, high resolution video. <br> Refresh the page to derotate another video.')
 		clearState()
 		return
 	}
 	const timesince = Math.floor((Date.now() - status.waiting) / 1000)
+	changeInfo()
     changeInstruction('Waiting for server to finish processing... this page will automatically update. \
 		Last refreshed ' + timesince  + ' seconds ago')
 	if (timesince > 7) {
 		status.waiting = Date.now()
-		$( '#videoIn' )[0].load()
-		$( '#videoIn' )[0].play()
-			.then(() =>  setState('waiting', undefined))
-			.catch(() => saveState(JSON.stringify(status)))
+		$.ajax('/return/'+getState().src, {method: 'HEAD',
+			success: () => {
+				setState('waiting', undefined)
+			},
+			error: () => {
+				saveState(JSON.stringify(status))
+			},
+		})
 	}
 	setTimeout(pollWait, 1000)
 }
@@ -184,6 +200,13 @@ const setVideo = (vl, cb = () => {} ) => {
 
 // Event Listeners
 $(window).on('load', () => {
+	// site counter
+	$.ajax('/count', {
+		success: (d) => {
+			$( '#useCount' ).first().html("This website has been used approximately " + d + " times since the last version update.")
+	}})
+
+
 	// element change listeners
 	$( '#fileInput' ).on('change', e => {
 		setVideo(URL.createObjectURL(e.target.files[0]))
@@ -194,8 +217,8 @@ $(window).on('load', () => {
 		let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
 		const scale_factor = Math.max(og_h / window.screen.availHeight, og_w / $( '#vidDiv' )[0].offsetWidth)
 		vidIn.scale_factor = (scale_factor > 1) ? scale_factor : 1
-		vidIn.height = Math.round(og_h / vidIn.scale_factor)
-		vidIn.width = Math.round(og_w / vidIn.scale_factor)
+		vidIn.height = Math.round(og_h / vidIn.scale_factor * 0.9)
+		vidIn.width = Math.round(og_w / vidIn.scale_factor * 0.9)
 	})
 
 	$( '#previewBut' ).on('click', e => {
@@ -209,8 +232,47 @@ $(window).on('load', () => {
 
 	$( '#derotBut' ).on('click', e =>  submitRot() )
 
+	const getTouchPos = (canvasDom, touchEvent) => {
+		var rect = canvasDom.getBoundingClientRect();
+		return {
+			x: touchEvent.touches[0].clientX - rect.left,
+			y: touchEvent.touches[0].clientY - rect.top
+		};
+	}
+
 	// non-opencv Canvas visual circle listeners
 	const canv = $( '#drawSurf' )[0]
+	
+	// touch translators
+	canv.addEventListener('touchstart', e => {
+		e.preventDefault();
+		var mousePos = getTouchPos(canv, e);
+		var mouseEvent = new MouseEvent("mousedown", {
+			clientX: mousePos.x,
+			clientY: mousePos.y
+		});
+		canv.dispatchEvent(mouseEvent);
+	})
+	// TODO: touchend does not actually have coordinates equivalent to mouseup
+	canv.addEventListener('touchend', e => {
+		e.preventDefault();
+		var mousePos = getTouchPos(canv, e);
+		var mouseEvent = new MouseEvent("mouseup", {
+			clientX: mousePos.x,
+			clientY: mousePos.y
+		});
+		canv.dispatchEvent(mouseEvent);
+	})
+	canv.addEventListener("touchmove", function (e) {
+		e.preventDefault();
+		var mousePos = getTouchPos(canv, e);
+		var mouseEvent = new MouseEvent("mousemove", {
+			clientX: mousePos.x,
+			clientY: mousePos.y
+		});
+		canv.dispatchEvent(mouseEvent);
+	})
+
 	canv.addEventListener('mousedown', e => {
 		if (canv.drawable == true) {
 			const canvctxt = $( '#drawSurf' )[0].getContext('2d')
@@ -248,7 +310,6 @@ $(window).on('load', () => {
 		clearState();
 	}
 	else {
-		$( '#videoIn' )[0].src = '/return/' + getState().src;
 		pollWait();
 	}
 })

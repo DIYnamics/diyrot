@@ -37,7 +37,7 @@ def spinlogo():
     return send_file('../static/spin-logo.png')
 
 @app.route('/diynamics-logo.png')
-def diylogo():
+def logo():
     return send_file('../static/diynamics-logo.png')
 
 # actual production methods
@@ -53,7 +53,7 @@ def save():
         preview_fn = opencv_preview(vname, x, y, r, request.form['rpm'])
     except Exception as e:
         print(" ".join(["error in upload", str(request.form), str(e)]), flush=True)
-        return jsonify({'fn': vname}), 400
+        return jsonify({'fn': vname}), 500
     return jsonify({'fn': vname, 'x': x, 'y': y, 'r': r, 'src': '/return/'+preview_fn}), 200
 
 @app.route('/preview/', methods=['POST'])
@@ -86,6 +86,17 @@ def derot():
         print(" ".join(["error in derot", str(request.form), str(e)]), flush=True)
         return "", 500
 
+@app.route('/count/')
+def update_count():
+    c = 0
+    try:
+        with open('count', 'r') as f:
+            c = int(f.read())
+    except:
+        pass
+    with open('count', 'w+') as f:
+        f.write(str(c+1))
+    return str(c), 200
 
 def opencv_detect(vidfp):
     return subprocess.check_output([_root_dir + '/bin/radii_check', vidfp], text=True).split()
