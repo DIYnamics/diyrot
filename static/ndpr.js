@@ -170,7 +170,7 @@ const pollWait = () => {
 	changeInfo()
     changeInstruction('Waiting for server to finish processing... this page will automatically update. \
 		Last refreshed ' + timesince  + ' seconds ago')
-	if (timesince > 7) {
+	if (timesince > 10) {
 		status.waiting = Date.now()
 		$.ajax('/return/'+getState().src, {method: 'HEAD',
 			success: () => {

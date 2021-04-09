@@ -100,7 +100,8 @@ def derot():
              float(request.form['x']), \
              float(request.form['y']), \
              float(request.form['r']), \
-             float(request.form['rpm']))
+             float(request.form['rpm']), \
+             request.form['sbs'])
         return r, 200
     except Exception as e:
         # prints are connected to syslog and viewable thru monitoring
@@ -139,17 +140,25 @@ def opencv_preview(vidfn, x, y, r, rpm):
                         os.path.join(_root_dir, 'return', fn+extn)])
     return fn+extn
 
-def opencv_derot(vidfn, x, y, r, rpm):
+def opencv_derot(vidfn, x, y, r, rpm, sbs):
     # full quality derotation
+    # start job and immediately return. up to frontend+nginx to keep track of
+    # video derotation progress.
     fn, extn = os.path.splitext(vidfn)
     # rename nicely with important metadata
     fn = "_".join(['diyrot', str(round(rpm))+'rpm', str(fn), 'derot'])
-    # start job and immediately return. up to frontend+nginx to keep track of
-    # video derotation progress.
-    subprocess.Popen([_root_dir+'/bin/derot',
-                        os.path.join(_root_dir, 'uploads', vidfn),
-                        str(x), str(y), str(r), str(rpm),
-                        os.path.join(_root_dir, 'return', fn+extn)])
+    if sbs == 'true':
+        # run side by side job
+        subprocess.Popen([_root_dir+'/bin/siderot',
+                            os.path.join(_root_dir, 'uploads', vidfn),
+                            str(x), str(y), str(r), str(rpm),
+                            os.path.join(_root_dir, 'return', fn+extn)])
+    else:
+        # run regular job
+        subprocess.Popen([_root_dir+'/bin/derot',
+                            os.path.join(_root_dir, 'uploads', vidfn),
+                            str(x), str(y), str(r), str(rpm),
+                            os.path.join(_root_dir, 'return', fn+extn)])
     return fn+extn
 
 if __name__ == '__main__':
