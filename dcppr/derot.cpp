@@ -1,4 +1,5 @@
 #include <string>
+#include <sstream>
 #include <errno.h>
 #include <opencv2/opencv.hpp>
 
@@ -70,6 +71,21 @@ int main(int argc, const char* argv[]) {
     if (!vidout.isOpened())
         return(-2);
 
+    // stringstream to manage rpm precision
+    std::ostringstream strrpm;
+    strrpm.precision(2);
+    strrpm << std::fixed << rpm;
+    // equivalent to basename (get filename from path)
+    auto f = filename.find_last_of("/");
+    std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
+    // construct overlay text
+    std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
+    std::string overlaytxtlow = "Generated at diyrot.epss.ucla.edu";
+    // calculate origin, white color
+    auto origup = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-30);
+    auto origlow = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-5);
+    auto color = cv::Scalar(255, 255, 255);
+
     // main derotation loop. if vid.read() fails (likely due to end of file), stop loop.
     // otherwise each iteration of the do-while loop has a fresh video frame to derotate.
     do {
@@ -81,6 +97,8 @@ int main(int argc, const char* argv[]) {
         // bitwise and 0 (make black) vid_frame in place, but only for pixels where center_mask != 0.
         // this is every pixel outside the circle of interest.
         cv::bitwise_and(vid_frame, 0, vid_frame, center_mask);
+        cv::putText(vid_frame, overlaytxtup, origup, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
+        cv::putText(vid_frame, overlaytxtlow, origlow, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
         // write vid_frame to the video. equivalent to vidout.write(vid_frame)
         vidout << vid_frame;
     } while(vid.read(vid_frame));

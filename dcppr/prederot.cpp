@@ -44,6 +44,12 @@ int main(int argc, const char* argv[]) {
     if (!vidout.isOpened())
         return(-2);
 
+    std::string overlaytxtup = "VISUAL PREVIEW";
+    std::string overlaytxtlow = "CLICK \'DEROTATE\' FOR FULL QUALITY VIDEO";
+    auto origup = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-30);
+    auto origlow = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-5);
+    auto color = cv::Scalar(0, 0, 255);
+
     // main loop is a bit different - around 100 frames are written to output
     // vid, which is ~10 seconds. to do this, we loop to quickly read and discard
     // the skipped frames (j for loop). when hit non-skip frame (exit from loop),
@@ -58,6 +64,8 @@ int main(int argc, const char* argv[]) {
         i += skip;
         cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i * dtheta, 1.0), dims);
         cv::bitwise_and(vid_frame, 0, vid_frame, center_mask);
+        cv::putText(vid_frame, overlaytxtup, origup, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
+        cv::putText(vid_frame, overlaytxtlow, origlow, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
         vidout << vid_frame;
     }
 
