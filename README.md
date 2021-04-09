@@ -1,5 +1,5 @@
 # DIYrotate
-
+TODO: add software arch
 No setup version of DigiPyRo. Use from your browser!
 
 ## Server requirements
