@@ -1,7 +1,10 @@
 Done:
-- finish final problem: how to when video is available on server to be loaded (without downloading?) [done]
-- reorg files nicely for reproducibility across servers / easy cleanup / editing [done]
-- add indicator of current progress, make client fetch current processing progress instead of having serving process wait until done [done]
+- finish final problem: how to when video is available on server to be loaded
+    (without downloading?) [done]
+- reorg files nicely for reproducibility across servers / easy cleanup / editing
+    [done]
+- add indicator of current progress, make client fetch current processing
+    progress instead of having serving process wait until done [done]
 - add cookies to survive refresh [done]
 - make rpm float + change num text input + indicate rotation of tank [fixed] 
 - add c o l o r and style [done]
@@ -13,17 +16,44 @@ Done:
 - add logging / rate limiting (logging done)
 - make all return 200s (done)
 - make pictures go to links (done)
-- visitor counter (GA analytics added) (doneish)
+- visitor counter (GA analytics added) (done)
 - side by side option [done]
+- add dreded documentation [ done]
+- adjust does not actually visualize circle correctly (done)
 
 TODO: 
 - add special code to allow touch devices (ipad/phone) to draw circle (need test)
 - side by side add text showing each
-- add dreded documentation
 
-remember:
-- new count/ endpoint needs nginx update (on rod's end)
+todo:
+opencv derotation clamp
+apple hevc codec auto reencode on upload
 
 bugfixes:
-- adjust does not actually visualize circle correctly
-- should be able to drag circle around (tint surface maybe?) to change the thign
+- should be able to drag circle around (tint surface maybe?) to change the
+    selection circle
+- simply checking existence of file is not enough (file may not be completely
+    written yet)
+
+Will not do (for a more motivated person than myself):
+- optimizations to derotation algorithm
+    - currently `putText()` is called for every processed frame; would be more
+        sensible to cache text drawing into a matrix and add that to main matrix
+    - while current iteration seems to achieve zero matrix copies, likely not
+        true; cannot convince myself warpAffine has no copies. if copies exist,
+        can we reduce the data copied? i.e. when reading a video frame, only
+        read region corresponding to designated circle, and constrain size of
+        vid_frame/circle_mask matrix to exactly that size (visually, remove
+        black bars)
+- readability / maintainability of frontend
+    - react / some sort of state machine for frontend: sit down and actually
+        think about states of UI, and code it with that model in mind
+- fortify backend against nefarious input
+    - try-except pattern is pretty bad. should more verbosely explain what went
+        wrong, reset backend state. is there any way bad agents can exploit bad
+        backend code?
+- SQL
+    - site counter, video progress should be stored in a lightweight database
+        and accessible across submitted jobs. naturally extends itself to a
+        queue, job tracking, and site counter. file or processed based tracking
+        is not good enough
