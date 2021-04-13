@@ -76,10 +76,12 @@ int main(int argc, const char* argv[]) {
     strrpm.precision(2);
     strrpm << std::fixed << rpm;
     // equivalent to basename (get filename from path)
-    auto f = filename.find_last_of("/");
-    std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
+    // but don't actually do this, bc file gets renamed before processsing
+    //auto f = filename.find_last_of("/");
+    //std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
     // construct overlay text
-    std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
+    //std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
+    std::string overlaytxtup = "Derotated at " + strrpm.str() + " rpm.";
     std::string overlaytxtlow = "Generated at diyrot.epss.ucla.edu";
     // calculate origin, white color
     auto origup = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-30);

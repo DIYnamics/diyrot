@@ -37,7 +37,7 @@ int main(int argc, const char* argv[]) {
     // circle of interest areas which jut out of the frame: bound by frame limits
     // four rectangles specifying copy regions for reg(ular)/derot(ated),
     // both from in (original frame) and out (output frame)
-    // 20 is to allow 20 pixels for text at the top of the frame
+    // 30 is to allow 30 pixels for text at the top of the frame
     auto regin = cv::Rect(
         cv::Point(circ.x - radii > 0 ? circ.x - radii : 0,
             circ.y - radii > 0 ? circ.y - radii : 0),
@@ -45,8 +45,8 @@ int main(int argc, const char* argv[]) {
             circ.y + radii < dims.height ? circ.y + radii : dims.height));
     auto regout = cv::Rect(0, 30, regin.width, regin.height);
     auto derotin = cv::Rect(regin);
-    auto derotout = cv::Rect(regin.width, 30, derotin.width, derotin.height);
-    auto outdims = cv::Size(regin.width + derotin.width, 30 + std::max(regin.height, derotin.height));
+    auto derotout = cv::Rect(regin.width + 10, 30, derotin.width, derotin.height);
+    auto outdims = cv::Size(regin.width + derotin.width + 10, 30 + std::max(regin.height, derotin.height));
     // set up output frame to write to
     cv::Mat out_frame = cv::Mat::zeros(outdims, vid_frame.type());
     auto vidout = cv::VideoWriter(outfn, codec, fps, outdims);
@@ -62,10 +62,11 @@ int main(int argc, const char* argv[]) {
     strrpm.precision(2);
     strrpm << std::fixed << rpm;
     // equivalent to basename (get filename from path)
-    auto f = filename.find_last_of("/");
-    std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
+    //auto f = filename.find_last_of("/");
+    //std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
     // construct overlay text
-    std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
+    //std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
+    std::string overlaytxtup = "Derotated at " + strrpm.str() + " rpm.";
     std::string overlaytxtlow = "Generated at diyrot.epss.ucla.edu";
     // calculate origin, white color
     auto origup = cv::Point(0, out_frame.rows-30);
