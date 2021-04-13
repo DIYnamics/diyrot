@@ -20,16 +20,11 @@ Done:
 - side by side option [done]
 - add dreded documentation [ done]
 - adjust does not actually visualize circle correctly (done)
+- side by side add text showing each
 
 TODO: 
 - add special code to allow touch devices (ipad/phone) to draw circle (need test)
-- side by side add text showing each
-
-todo:
-opencv derotation clamp
-apple hevc codec auto reencode on upload
-
-bugfixes:
+- line in between segments
 - should be able to drag circle around (tint surface maybe?) to change the
     selection circle
 - simply checking existence of file is not enough (file may not be completely
@@ -57,3 +52,5 @@ Will not do (for a more motivated person than myself):
         and accessible across submitted jobs. naturally extends itself to a
         queue, job tracking, and site counter. file or processed based tracking
         is not good enough
+- apple hevc codec auto reencode on upload
+    - iphone video conversion TOOD add more
