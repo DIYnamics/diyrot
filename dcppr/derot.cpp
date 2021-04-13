@@ -1,5 +1,6 @@
 #include <string>
 #include <sstream>
+#include <cstdio>
 #include <errno.h>
 #include <opencv2/opencv.hpp>
 
@@ -56,7 +57,8 @@ int main(int argc, const char* argv[]) {
     // open an output video using our output filename/container, avc codec, original video's fps,
     // and original video's dimensions. note that the fps may be slightly rounded between input video
     // and output video. I'm not sure why this is the case.
-    auto vidout = cv::VideoWriter(outfn, codec, fps, dims);
+    // additionally, prepend 'TMP' to file name so that slow systems do not break
+    auto vidout = cv::VideoWriter("TMP"+outfn, codec, fps, dims);
     // incremental angle change for each frame
     double i = 0.0;
     // change in degree angle per frame.
@@ -107,6 +109,8 @@ int main(int argc, const char* argv[]) {
 
     // finish processing the output video, and close the file
     vidout.release();
+    // move back to original filename
+    rename(("TMP"+outfn).c_str(), outfn.c_str());
     // exit success is cstdlib macro - apparently is 0
     return EXIT_SUCCESS;
 }

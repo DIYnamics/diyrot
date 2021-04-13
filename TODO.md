@@ -20,15 +20,14 @@ Done:
 - side by side option [done]
 - add dreded documentation [ done]
 - adjust does not actually visualize circle correctly (done)
-- side by side add text showing each
+- side by side add text showing each (done)
+- simply checking existence of file is not enough (file may not be completely
+    written yet) (fixed)
 
 TODO: 
 - add special code to allow touch devices (ipad/phone) to draw circle (need test)
-- line in between segments
 - should be able to drag circle around (tint surface maybe?) to change the
     selection circle
-- simply checking existence of file is not enough (file may not be completely
-    written yet)
 
 Will not do (for a more motivated person than myself):
 - optimizations to derotation algorithm
@@ -54,3 +53,5 @@ Will not do (for a more motivated person than myself):
         is not good enough
 - apple hevc codec auto reencode on upload
     - iphone video conversion TOOD add more
+- containerization
+    - containerize all the things

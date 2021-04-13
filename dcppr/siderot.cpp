@@ -49,7 +49,7 @@ int main(int argc, const char* argv[]) {
     auto outdims = cv::Size(regin.width + derotin.width + 10, 30 + std::max(regin.height, derotin.height));
     // set up output frame to write to
     cv::Mat out_frame = cv::Mat::zeros(outdims, vid_frame.type());
-    auto vidout = cv::VideoWriter(outfn, codec, fps, outdims);
+    auto vidout = cv::VideoWriter("TMP"+outfn, codec, fps, dims);
     double i = 0.0;
     double dtheta = -6.0 * rpm / fps;
 
@@ -90,5 +90,6 @@ int main(int argc, const char* argv[]) {
     } while(vid.read(vid_frame));
 
     vidout.release();
+    rename(("TMP"+outfn).c_str(), outfn.c_str());
     return EXIT_SUCCESS;
 }
