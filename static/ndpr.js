@@ -28,7 +28,7 @@ const setState = (k, v) => {
 	return s
 }
 
-// Cosmetic functions
+// Canvas functions
 const initCanvas = () => {
 	const vidIn = $( '#videoIn' )[0]
 	const canv = $( '#drawSurf' )[0]
@@ -45,11 +45,70 @@ const clearCanvas = () => {
 	canvctxt.clearRect(0, 0, canvctxt.canvas.width, canvctxt.canvas.height)
 }
 
+const drawCirc = (x, y, r, xc, yc) => {
+    const canv = $( '#drawSurf' )[0]
+    const canvctxt = canv.getContext('2d')
+    clearCanvas()
+    canvctxt.beginPath()
+    canvctxt.moveTo(x, y)
+    canvctxt.lineTo(xc, yc)
+    canvctxt.closePath()
+    canvctxt.stroke()
+    canvctxt.beginPath()
+    canvctxt.arc(x, y, r, 0, 2 * Math.PI)
+    canvctxt.stroke()
+    canvctxt.closePath()
+}
+
+/* Canvas events:
+ * three types: mousedown, mousemove, mouseup
+ * mouseup does not have a touch up event 
+ *
+ * flow 1: mousedown -> drag -> mouseup 
+ *      redraw from stored center 
+ * flow 2: mousedown -> drag -> mouseup
+ *      only occurs when r is not -1
+ *      redraw from same r, moved center
+ * state x, y, r: current specified circle params in video coords
+ * canv x, y: last known touch positions, in canvas coords
+ */
+const canvasDown = (x, y) => {
+    const canv = $( '#drawSurf' )[0]
+    if (canv.drawable == true) {
+        clearCanvas()
+        const canvctxt = canv.getContext('2d')
+        setState('x', x * canv.scale_factor); setState('y', y * canv.scale_factor)
+        setState('r', -1)
+        canv.x = x; canv.y = y
+    }
+}
+
+const canvasDrag = (x, y) => {
+    const canv = $( '#drawSurf' )[0]
+    // have x, y, but no definitive r 
+    if(canv.drawable == true && getState().x && getState().y && getState().r == -1) {
+        const centerx = getState().x / canv.scale_factor
+        const centery = getState().y / canv.scale_factor
+        drawCirc(centerx, centery, 
+            Math.sqrt(Math.pow(x - centerx, 2) + Math.pow(y - centery, 2)), x, y);
+        canv.x = x; canv.y = y
+    }
+}
+
+const canvasUp = () => {
+    const canv = $( '#drawSurf' )[0]
+    if(canv.drawable == true && getState().r == -1) {
+        const centerx = getState().x / canv.scale_factor
+        const centery = getState().y / canv.scale_factor
+        setState('r', Math.sqrt(
+            Math.pow(canv.x - centerx, 2) + Math.pow(canv.y - centery, 2)) * canv.scale_factor)
+    }
+}
+
 const hideEl = (l) => l.style.visibility = 'hidden'
 const showEl = (l) => l.style.visibility = 'visible'
 
 const dropManual = () => {
-	// TODO: enable preview only when rpm / center changes
 	hideEl($( '#derotBut' )[0])
 	$( '#rpm' )[0].disabled = false
 	$( '#previewBut' )[0].value = "Preview"
@@ -195,12 +254,12 @@ const setVideo = (vl, cb = () => {} ) => {
 
 // Event Listeners
 $(window).on('load', () => {
+
 	// site counter
 	$.ajax('/count', {
 		success: (d) => {
 			$( '#useCount' ).first().html("This website has been used approximately " + d + " times since the last version update.")
 	}})
-
 
 	// element change listeners
 	$( '#fileInput' ).on('change', e => {
@@ -215,11 +274,9 @@ $(window).on('load', () => {
 		vidIn.height = Math.round(og_h / vidIn.scale_factor)
 		vidIn.width = Math.round(og_w / vidIn.scale_factor)
 	})
-
 	$( '#previewBut' ).on('click', e => {
 		var v = $( '#previewBut' )[0].value
 		if (v == "Adjust")
-			// drop to manual
 			dropManual();
 		else
 			submitPreview(false);
@@ -237,68 +294,25 @@ $(window).on('load', () => {
 
 	// non-opencv Canvas visual circle listeners
 	const canv = $( '#drawSurf' )[0]
-	
-	// touch translators
+	// touch listeners
 	canv.addEventListener('touchstart', e => {
 		e.preventDefault();
-		var mousePos = getTouchPos(canv, e);
-		var mouseEvent = new MouseEvent("mousedown", {
-			clientX: mousePos.x,
-			clientY: mousePos.y
-		});
-		canv.dispatchEvent(mouseEvent);
+		var pos = getTouchPos(canv, e);
+        canvasDown(pos.x, pos.y);
 	})
-	// TODO: touchend does not actually have coordinates equivalent to mouseup
+    canv.addEventListener("touchmove", e => {
+		e.preventDefault();
+		var pos = getTouchPos(canv, e);
+        canvasDrag(pos.x, pos.y);
+	})
 	canv.addEventListener('touchend', e => {
 		e.preventDefault();
-		var mousePos = getTouchPos(canv, e);
-		var mouseEvent = new MouseEvent("mouseup", {
-			clientX: mousePos.x,
-			clientY: mousePos.y
-		});
-		canv.dispatchEvent(mouseEvent);
+        canvasUp();
 	})
-	canv.addEventListener("touchmove", function (e) {
-		e.preventDefault();
-		var mousePos = getTouchPos(canv, e);
-		var mouseEvent = new MouseEvent("mousemove", {
-			clientX: mousePos.x,
-			clientY: mousePos.y
-		});
-		canv.dispatchEvent(mouseEvent);
-	})
-
-	canv.addEventListener('mousedown', e => {
-		if (canv.drawable == true) {
-			const canvctxt = $( '#drawSurf' )[0].getContext('2d')
-			clearCanvas()
-			canv.x = e.offsetX; canv.y = e.offsetY
-			setState('x', canv.x * canv.scale_factor); setState('y', canv.y * canv.scale_factor);
-			canv.radii = -1
-	}})
-
-	canv.addEventListener('mousemove', e => {
-		if(canv.radii == -1 && canv.x && canv.y && canv.drawable == true) {
-			const canvctxt = canv.getContext('2d')
-			clearCanvas()
-			canvctxt.beginPath()
-			canvctxt.moveTo(canv.x, canv.y)
-			canvctxt.lineTo(e.offsetX, e.offsetY)
-			canvctxt.closePath()
-			canvctxt.stroke()
-			canvctxt.beginPath()
-			canvctxt.arc(canv.x, canv.y, 
-				Math.sqrt(Math.pow(e.offsetX - canv.x, 2) + Math.pow(e.offsetY - canv.y, 2)), 
-				0, 2 * Math.PI)
-			canvctxt.stroke()
-	}})
-
-	canv.addEventListener('mouseup', e => {
-		if(canv.radii == -1 && canv.drawable == true) {
-			// need to multiply back to get original size
-			canv.radii = Math.sqrt(Math.pow(e.offsetX - canv.x, 2) + Math.pow(e.offsetY - canv.y, 2)) * canv.scale_factor
-			setState('r', canv.radii)
-	}})
+    // regular listeners
+	canv.addEventListener('mousedown', e => canvasDown(e.offsetX, e.offsetY));
+	canv.addEventListener('mousemove', e => canvasDrag(e.offsetX, e.offsetY));
+	canv.addEventListener('mouseup', e => canvasUp());
 	
 	// is there a valid waiting cookie? if not, ignore
 	if (getState().waiting == undefined) {

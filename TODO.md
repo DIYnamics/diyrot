@@ -23,9 +23,9 @@ Done:
 - side by side add text showing each (done)
 - simply checking existence of file is not enough (file may not be completely
     written yet) (fixed)
+- add special code to allow touch devices (ipad/phone) to draw circle (done)
 
 TODO: 
-- add special code to allow touch devices (ipad/phone) to draw circle (need test)
 - should be able to drag circle around (tint surface maybe?) to change the
     selection circle
 
