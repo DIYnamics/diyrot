@@ -28,10 +28,12 @@ const setState = (k, v) => {
 	return s
 }
 
+
 // Canvas functions
 const initCanvas = () => {
+    const canv = $( '#drawSurf' )[0];
+    const canvctxt = $( '#drawSurf' )[0].getContext('2d');
 	const vidIn = $( '#videoIn' )[0]
-	const canv = $( '#drawSurf' )[0]
 	canv.scale_factor = vidIn.scale_factor
 	canv.height = vidIn.height
 	canv.width = vidIn.width
@@ -41,13 +43,14 @@ const initCanvas = () => {
 }
 
 const clearCanvas = () => {
-	const canvctxt = $( '#drawSurf' )[0].getContext('2d')
-	canvctxt.clearRect(0, 0, canvctxt.canvas.width, canvctxt.canvas.height)
+    const canv = $( '#drawSurf' )[0];
+    const canvctxt = $( '#drawSurf' )[0].getContext('2d');
+	canvctxt.clearRect(0, 0, canv.width, canv.height)
 }
 
 const drawCirc = (x, y, r, xc, yc) => {
-    const canv = $( '#drawSurf' )[0]
-    const canvctxt = canv.getContext('2d')
+    const canv = $( '#drawSurf' )[0];
+    const canvctxt = $( '#drawSurf' )[0].getContext('2d');
     clearCanvas()
     canvctxt.beginPath()
     canvctxt.moveTo(x, y)
@@ -58,6 +61,11 @@ const drawCirc = (x, y, r, xc, yc) => {
     canvctxt.arc(x, y, r, 0, 2 * Math.PI)
     canvctxt.stroke()
     canvctxt.closePath()
+}
+
+const inCirc = (x, y, r, xsel, ysel) => {
+    const rcurr = Math.sqrt(Math.pow(xsel - x, 2) + Math.pow(ysel - y, 2))
+    return (rcurr > r - 10 && rcurr < r + 10) ? true : false
 }
 
 /* Canvas events:
@@ -73,10 +81,19 @@ const drawCirc = (x, y, r, xc, yc) => {
  * canv x, y: last known touch positions, in canvas coords
  */
 const canvasDown = (x, y) => {
-    const canv = $( '#drawSurf' )[0]
+    const canv = $( '#drawSurf' )[0];
+    const canvctxt = $( '#drawSurf' )[0].getContext('2d');
+    const centerx = getState().x / canv.scale_factor
+    const centery = getState().y / canv.scale_factor
+    const r = getState().r / canv.scale_factor
+    if (getState().r > 0 && canv.drawable == true && inCirc(centerx, centery, r, x, y)) {
+        // in moving state: flag r through flipped, canvxy is first down loc
+        setState('r', -getState().r)
+        canv.x = x; canv.y = y
+        return
+    }
     if (canv.drawable == true) {
         clearCanvas()
-        const canvctxt = canv.getContext('2d')
         setState('x', x * canv.scale_factor); setState('y', y * canv.scale_factor)
         setState('r', -1)
         canv.x = x; canv.y = y
@@ -84,7 +101,17 @@ const canvasDown = (x, y) => {
 }
 
 const canvasDrag = (x, y) => {
-    const canv = $( '#drawSurf' )[0]
+    const canv = $( '#drawSurf' )[0];
+    const canvctxt = $( '#drawSurf' )[0].getContext('2d');
+    if (getState().r < -1 && canv.drawable == true) {
+        // we are in moving state: rescale and redraw
+        const newx = (getState().x / canv.scale_factor) + (x - canv.x)
+        const newy = (getState().y / canv.scale_factor) + (y - canv.y)
+        const r = -getState().r / canv.scale_factor
+        drawCirc(newx, newy, r, newx, newy);
+        setState('x', newx * canv.scale_factor); setState('y', newy * canv.scale_factor)
+        canv.x = x; canv.y = y
+    }
     // have x, y, but no definitive r 
     if(canv.drawable == true && getState().x && getState().y && getState().r == -1) {
         const centerx = getState().x / canv.scale_factor
@@ -96,7 +123,11 @@ const canvasDrag = (x, y) => {
 }
 
 const canvasUp = () => {
-    const canv = $( '#drawSurf' )[0]
+    const canv = $( '#drawSurf' )[0];
+    const canvctxt = $( '#drawSurf' )[0].getContext('2d');
+    if(canv.drawable == true && getState().r < -1) {
+        setState('r', -getState().r)
+    }
     if(canv.drawable == true && getState().r == -1) {
         const centerx = getState().x / canv.scale_factor
         const centery = getState().y / canv.scale_factor
@@ -256,7 +287,7 @@ const setVideo = (vl, cb = () => {} ) => {
 $(window).on('load', () => {
 
 	// site counter
-	$.ajax('/count', {
+	$.ajax('/count/', {
 		success: (d) => {
 			$( '#useCount' ).first().html("This website has been used approximately " + d + " times since the last version update.")
 	}})
@@ -295,24 +326,24 @@ $(window).on('load', () => {
 	// non-opencv Canvas visual circle listeners
 	const canv = $( '#drawSurf' )[0]
 	// touch listeners
-	canv.addEventListener('touchstart', e => {
+	canv.addEventListener('touchstart', (e) => {
 		e.preventDefault();
 		var pos = getTouchPos(canv, e);
         canvasDown(pos.x, pos.y);
 	})
-    canv.addEventListener("touchmove", e => {
+    canv.addEventListener("touchmove", (e) => {
 		e.preventDefault();
 		var pos = getTouchPos(canv, e);
         canvasDrag(pos.x, pos.y);
 	})
-	canv.addEventListener('touchend', e => {
+	canv.addEventListener('touchend', (e) => {
 		e.preventDefault();
         canvasUp();
 	})
     // regular listeners
-	canv.addEventListener('mousedown', e => canvasDown(e.offsetX, e.offsetY));
-	canv.addEventListener('mousemove', e => canvasDrag(e.offsetX, e.offsetY));
-	canv.addEventListener('mouseup', e => canvasUp());
+	canv.addEventListener('mousedown', (e) => canvasDown(e.offsetX, e.offsetY));
+	canv.addEventListener('mousemove', (e) => canvasDrag(e.offsetX, e.offsetY));
+	canv.addEventListener('mouseup', (e) => canvasUp());
 	
 	// is there a valid waiting cookie? if not, ignore
 	if (getState().waiting == undefined) {
