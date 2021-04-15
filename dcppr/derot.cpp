@@ -27,7 +27,11 @@ int main(int argc, const char* argv[]) {
     // note that the container type is specified by the output filename
     // (we will always use .mp4)
     std::string outfn = std::string(argv[6]);
-    // problem with getting the rpm? or some input was too large to represent? return 255.
+    std::string tmpfn = outfn;
+    auto f = outfn.find_last_of("/");
+    f = (f == std::string::npos) ? 0 : f+1;
+    tmpfn.insert(f, "TMP");
+    // problem with getting the rpm? or some input was too large to represent? return 255..
     if (!rpm || errno == ERANGE)
         return(-1);
     // create a VideoCapture object. openCV tries to open the video file.
@@ -58,7 +62,7 @@ int main(int argc, const char* argv[]) {
     // and original video's dimensions. note that the fps may be slightly rounded between input video
     // and output video. I'm not sure why this is the case.
     // additionally, prepend 'TMP' to file name so that slow systems do not break
-    auto vidout = cv::VideoWriter("TMP"+outfn, codec, fps, dims);
+    auto vidout = cv::VideoWriter(tmpfn, codec, fps, dims);
     // incremental angle change for each frame
     double i = 0.0;
     // change in degree angle per frame.
@@ -110,7 +114,7 @@ int main(int argc, const char* argv[]) {
     // finish processing the output video, and close the file
     vidout.release();
     // move back to original filename
-    rename(("TMP"+outfn).c_str(), outfn.c_str());
+    rename(tmpfn.c_str(), outfn.c_str());
     // exit success is cstdlib macro - apparently is 0
     return EXIT_SUCCESS;
 }

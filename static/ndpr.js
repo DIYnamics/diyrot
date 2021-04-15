@@ -301,7 +301,8 @@ $(window).on('load', () => {
 		const vidIn = $( '#videoIn' )[0]
 		let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
 		const scale_factor = Math.max(og_h / window.screen.availHeight, og_w / $( '#vidDiv' )[0].offsetWidth)
-		vidIn.scale_factor = (scale_factor > 1) ? scale_factor : 1
+		// clamp below 1.5s (screen is larger than image)
+		vidIn.scale_factor = (scale_factor > 1.5) ? scale_factor : 1.5
 		vidIn.height = Math.round(og_h / vidIn.scale_factor)
 		vidIn.width = Math.round(og_w / vidIn.scale_factor)
 	})
