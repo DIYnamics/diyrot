@@ -18,6 +18,11 @@ int main(int argc, const char* argv[]) {
     int radii = atoi(argv[4]);
     double rpm = strtod(argv[5], NULL);
     std::string outfn = std::string(argv[6]);
+    std::string tmpfn = std::string(outfn);
+    auto f = tmpfn.find_last_of("/");
+    f = (f == std::string::npos) ? 0 : f+1;
+    tmpfn.insert(f, "TMP");
+
     if (!rpm || errno == ERANGE)
         return(-1);
     auto vid = cv::VideoCapture(filename);
@@ -37,7 +42,7 @@ int main(int argc, const char* argv[]) {
     // circle of interest areas which jut out of the frame: bound by frame limits
     // four rectangles specifying copy regions for reg(ular)/derot(ated),
     // both from in (original frame) and out (output frame)
-    // 30 is to allow 30 pixels for text at the top of the frame
+    // 20 is to allow 20 pixels for text at the top of the frame
     auto regin = cv::Rect(
         cv::Point(circ.x - radii > 0 ? circ.x - radii : 0,
             circ.y - radii > 0 ? circ.y - radii : 0),
@@ -46,10 +51,11 @@ int main(int argc, const char* argv[]) {
     auto regout = cv::Rect(0, 30, regin.width, regin.height);
     auto derotin = cv::Rect(regin);
     auto derotout = cv::Rect(regin.width + 10, 30, derotin.width, derotin.height);
+    // max is unnecessary here
     auto outdims = cv::Size(regin.width + derotin.width + 10, 30 + std::max(regin.height, derotin.height));
     // set up output frame to write to
     cv::Mat out_frame = cv::Mat::zeros(outdims, vid_frame.type());
-    auto vidout = cv::VideoWriter("TMP"+outfn, codec, fps, dims);
+    auto vidout = cv::VideoWriter(tmpfn, codec, fps, outdims);
     double i = 0.0;
     double dtheta = -6.0 * rpm / fps;
 
@@ -62,10 +68,7 @@ int main(int argc, const char* argv[]) {
     strrpm.precision(2);
     strrpm << std::fixed << rpm;
     // equivalent to basename (get filename from path)
-    //auto f = filename.find_last_of("/");
-    //std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
     // construct overlay text
-    //std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
     std::string overlaytxtup = "Derotated at " + strrpm.str() + " rpm.";
     std::string overlaytxtlow = "Generated at diyrot.epss.ucla.edu";
     // calculate origin, white color
@@ -90,6 +93,6 @@ int main(int argc, const char* argv[]) {
     } while(vid.read(vid_frame));
 
     vidout.release();
-    rename(("TMP"+outfn).c_str(), outfn.c_str());
+    rename(tmpfn.c_str(), outfn.c_str());
     return EXIT_SUCCESS;
 }

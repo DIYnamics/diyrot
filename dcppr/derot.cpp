@@ -92,7 +92,7 @@ int main(int argc, const char* argv[]) {
     // calculate origin, white color
     auto origup = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-30);
     auto origlow = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-5);
-    auto color = cv::Scalar(255, 255, 255);
+    auto color = cv::Scalar(255, 255, 255, 127.5);
 
     // main derotation loop. if vid.read() fails (likely due to end of file), stop loop.
     // otherwise each iteration of the do-while loop has a fresh video frame to derotate.
