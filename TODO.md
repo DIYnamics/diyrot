@@ -27,8 +27,12 @@ Done:
 - should be able to drag circle around (tint surface maybe?) to change the
     selection circle
 
-TODO: application arch documentation, ndpr.js docs, per-file header description
+TODO: 
+- application arch documentation, ndpr.js docs, per-file header description
 docs
+- resize on circle select requires a redraw of circle
+- center crosshair for circle
+- textual step by step instead of the current nonsense
 
 Will not do (for a more motivated person than myself):
 - optimizations to derotation algorithm
