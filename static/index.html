@@ -48,12 +48,26 @@
 				<br> Need help? Don't have a spinny table set up yet? Check out the <a href="https://github.com/OrangeRoof/diyrot/wiki"> wiki for tutorials and examples.</a></p>
 			<div class="row">
 				<div class="col">
-					<label class="form-label" for="rpm">RPM of rotating frame (positive is counterclockwise) </label>
+					<div class="row">
+					<label class="form-label" for="rpm">RPM of rotating frame</label>
+					</div>
+					<div class="row">
+					<label class="form-label" for="rpm">(positive is counterclockwise)</label>
+					</div>
+					<div class="row">
 					<input class="form-control" type="text" id="rpm" value=10.0 />
+					</div>
 				</div>
 				<div class="col">
+					<div class="row">
 					<label class="form-label" for="fileInput">Select a file</label>
+					</div>
+					<div class="row">
+					<label class="form-label" for="fileInput">(most video types supported)</label>
+					</div>
+					<div class="row">
 					<input class="form-control" type="file" id="fileInput" accept="video/*" />
+					</div>
 				</div>
 			</div>
 			<div class="row">
@@ -68,7 +82,7 @@
 				style="visibility:hidden" />
 		</div>
 		<div class="row mt-3 p-0">
-			<div id="vidDiv" class='col'>
+			<div id="vidDiv" class='p-0'>
 				<canvas class="" id="drawSurf" style="position:absolute;z-index:2"></canvas>
 				<video class="" loop playsinline muted=true id="videoIn" style="position:relative;z-index:0" />
 			</div>

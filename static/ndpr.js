@@ -147,7 +147,8 @@ const dropManual = () => {
 	changeInstruction('Manually changing rotation circle or RPM. The auto-detected \
 	rotation circle (if found) is drawn. To specify the rotation circle \
 	yourself, click-drag your mouse from the circle center to anywhere \
-	on the edge of the circle.')
+	on the edge of the circle. Once a suitable radius is selected, you can also \
+	drag the circle around to adjust the rotation center.')
 	setVideo(URL.createObjectURL($('#fileInput')[0].files[0]), () => {
 		sleep(500) //hacky hack
 		initCanvas()
@@ -215,9 +216,10 @@ const submitPreview = (newSub) => {
 			myXhr.upload.addEventListener('progress', e => {
 				if (e.lengthComputable) 
 					$('progress').attr({ value: e.loaded, max: e.total, })
-				if (e.loaded == e.total)
+				if (e.loaded == e.total) {
 					changeInfo()
 					changeInstruction('Give the server a few seconds to generate a preview...')
+				}
 			}, false)
 			return myXhr
 		}
@@ -283,6 +285,20 @@ const setVideo = (vl, cb = () => {} ) => {
 	vid.play().then(cb())
 }
 
+const resizeVideo = () => {
+	const vidIn = $( '#videoIn' )[0]
+	let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
+	// use video container width, nicely set from flexbox
+	const scale_factor = Math.max(og_h / window.innerHeight, og_w / $('#vidDiv')[0].clientWidth)
+	// don't make videos bigger
+	vidIn.scale_factor = (scale_factor > 1) ? scale_factor : 1
+	vidIn.height = Math.round(og_h / vidIn.scale_factor)
+	vidIn.width = Math.round(og_w / vidIn.scale_factor)
+}
+
+// resize listener
+window.onresize = resizeVideo;
+
 // Event Listeners
 $(window).on('load', () => {
 
@@ -298,13 +314,7 @@ $(window).on('load', () => {
 		submitPreview(true)
 	})
 	$( '#videoIn' ).on('loadeddata', e => {
-		const vidIn = $( '#videoIn' )[0]
-		let og_h = vidIn.videoHeight, og_w = vidIn.videoWidth
-		const scale_factor = Math.max(og_h / window.screen.availHeight, og_w / $( '#vidDiv' )[0].offsetWidth)
-		// clamp below 1.5s (screen is larger than image)
-		vidIn.scale_factor = (scale_factor > 1.5) ? scale_factor : 1.5
-		vidIn.height = Math.round(og_h / vidIn.scale_factor)
-		vidIn.width = Math.round(og_w / vidIn.scale_factor)
+		resizeVideo()
 	})
 	$( '#previewBut' ).on('click', e => {
 		var v = $( '#previewBut' )[0].value

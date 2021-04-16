@@ -24,10 +24,11 @@ Done:
 - simply checking existence of file is not enough (file may not be completely
     written yet) (fixed)
 - add special code to allow touch devices (ipad/phone) to draw circle (done)
-
-TODO: 
 - should be able to drag circle around (tint surface maybe?) to change the
     selection circle
+
+TODO: application arch documentation, ndpr.js docs, per-file header description
+docs
 
 Will not do (for a more motivated person than myself):
 - optimizations to derotation algorithm
@@ -52,6 +53,8 @@ Will not do (for a more motivated person than myself):
         queue, job tracking, and site counter. file or processed based tracking
         is not good enough
 - apple hevc codec auto reencode on upload
-    - iphone video conversion TOOD add more
+    - determine what happens when HEVC encoded videos taken from phone are
+        uploaded to diyrot. Is user intervention needed to specify a suitable
+        input for our program? 
 - containerization
     - containerize all the things
