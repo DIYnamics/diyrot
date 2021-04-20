@@ -1,3 +1,4 @@
+// main derotation program
 #include <string>
 #include <sstream>
 #include <cstdio>

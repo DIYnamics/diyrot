@@ -26,12 +26,12 @@ Done:
 - add special code to allow touch devices (ipad/phone) to draw circle (done)
 - should be able to drag circle around (tint surface maybe?) to change the
     selection circle
+- resize on circle select requires a redraw of circle [done]
+- center crosshair for circle [done]
+- application arch documentation, ndpr.js docs, per-file header description
+docs [done]
 
 TODO: 
-- application arch documentation, ndpr.js docs, per-file header description
-docs
-- resize on circle select requires a redraw of circle
-- center crosshair for circle
 - textual step by step instead of the current nonsense
 
 Will not do (for a more motivated person than myself):

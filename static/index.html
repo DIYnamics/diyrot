@@ -24,7 +24,6 @@
 		gtag('js', new Date());
 		gtag('config', 'G-EQEXNTJPZY');
 	</script>
-
 	<script src="ndpr.js"></script>
 </head>
 
@@ -32,7 +31,11 @@
 	<header>
 		<nav class="bg-dark">
 			<div class="container-fluid">
-				<em class="navbar-brand" style="color:white">DIYRotate</em>
+				<em class="navbar-brand" style="color:white">
+                    <a href="https://diyrot.epss.ucla.edu/" style="text-decoration:none;color:white">
+                        DIYRotate
+                    </a>
+                </em>
 				<a href="https://spinlab.ess.ucla.edu/">
 					<img class="navbar-brand" src="/spin-logo.png" height=35 style="float:right">
 				</a>
@@ -42,38 +45,34 @@
 			</div>
 	</header>
 	<div class="container mt-3">
-		<div class="row">
-			<p class="alert alert-info" style="font-size: 15px; font-weight: bold;" id="status">
-				Specify the rate of derotation, then select a video file to derotate.
-				<br> Need help? Don't have a spinny table set up yet? Check out the <a href="https://github.com/OrangeRoof/diyrot/wiki"> wiki for tutorials and examples.</a></p>
-			<div class="row">
-				<div class="col">
-					<div class="row">
-					<label class="form-label" for="rpm">RPM of rotating frame</label>
-					</div>
-					<div class="row">
-					<label class="form-label" for="rpm">(positive is counterclockwise)</label>
-					</div>
-					<div class="row">
-					<input class="form-control" type="text" id="rpm" value=10.0 />
-					</div>
-				</div>
-				<div class="col">
-					<div class="row">
-					<label class="form-label" for="fileInput">Select a file</label>
-					</div>
-					<div class="row">
-					<label class="form-label" for="fileInput">(most video types supported)</label>
-					</div>
-					<div class="row">
-					<input class="form-control" type="file" id="fileInput" accept="video/*" />
-					</div>
-				</div>
-			</div>
-			<div class="row">
-					<label class="form-check-label"> Advanced: show derotated and original frames, side by side (not available in preview)  <label/>
-					<input class="form-check-input" type="checkbox" id="sideBS"/>
-			</div>
+        <p class="alert alert-info" style="font-size: 15px; font-weight: bold;" id="status">
+            Specify the rate of derotation, then select a video file to derotate.
+            <br> Need help? Don't have a spinny table set up yet? Check out the <a href="https://github.com/DIYnamics/diyrot/wiki"> wiki for tutorials and examples.</a>
+        </p>
+		<div class="form-group row">
+            <label class="col-md-8 mb-0 col-form-label" for="rpm">RPM of rotating frame (positive is counterclockwise)</label>
+            <div class="col-md-4">
+                <input class="form-control" type="text" id="rpm" value=10.0 /> 
+            </div>
+        </div>
+		<div class="form-group row">
+            <label class="col-md-8 mb-0 col-form-label" for="fileInput">Select a file</label>
+            <div class="col-md-4">
+                <input class="form-control" type="file" id="fileInput" accept="video/*" />
+            </div>
+        </div>
+		<div class="form-group row">
+            <label class="form-check-label mb-0 col-md-8">(Advanced) Show original and derotated frames, side by side</label>
+            <div class="col-md-4">
+                <input class="form-check-input" type="checkbox" id="sideBS"/>
+            </div>
+        </div>
+        <div class="row">
+            <text id="SBShelp" style="visibility:hidden;color:blueviolet">
+                The preview derotation will not show the side by side view. Only the fully processed derotation video will.
+            </text>
+        </div>
+        <div class="row">
 			<br>
 			<progress style="visibility:hidden"></progress>
 			<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust"

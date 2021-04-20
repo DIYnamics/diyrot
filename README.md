@@ -1,6 +1,18 @@
 # DIYrotate
-TODO: add software arch
 No setup version of DigiPyRo. Use from your browser!
+
+## Software Architecture
+
+Here is a sorted list of programs DIYrotate uses to process video, in order of
+increasing time:
+- nginx/uwsgi configs in proc (see Ansible playbook for production scripts)
+- static/index.html (render webpage)
+- static/ndpr.js (control webpage, submission to server)
+- proc/app.py (receive requests, dispatch to C++ code)
+- dcppr/radii_check.cpp (find rotation circle)
+- dcppr/prederot.cpp (generate preview)
+- static/ndpr.js (check preview, fix, resubmit / submit for full derot)
+- either dcppr/derot.cpp or static/siderot.cpp (full derot)
 
 ## Server requirements
 

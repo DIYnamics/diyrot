@@ -1,6 +1,7 @@
+// javascript for frontend 
 'use strict';
 
-// Utility function
+// Utility functions
 const changeInstruction = text => $( '#status' ).first().html(text)
 const changeInfo = () => $('#status').attr('class', 'alert alert-info')
 const changeWarning = () => $('#status').attr('class', 'alert alert-warning')
@@ -12,6 +13,8 @@ const sleep = m => new Promise(r => setTimeout(r, m))
 const saveState = (j) => document.cookie = "state=" + j + ";"
 const clearState = () => document.cookie = "state={}; expires=0;"
 
+// status of upload is stored a state object which is a cookie
+// state will have x/y/r of returned or drawn circle, filename on server, last HEAD time
 const getState = () => {
 	if (document.cookie.indexOf("state") == -1)
 		return JSON.parse("{}")
@@ -28,8 +31,8 @@ const setState = (k, v) => {
 	return s
 }
 
-
 // Canvas functions
+// make canvas match video
 const initCanvas = () => {
     const canv = $( '#drawSurf' )[0];
     const canvctxt = $( '#drawSurf' )[0].getContext('2d');
@@ -48,6 +51,7 @@ const clearCanvas = () => {
 	canvctxt.clearRect(0, 0, canv.width, canv.height)
 }
 
+// draw circle with crosshair and optional radius from x, y to xc, yc
 const drawCirc = (x, y, r, xc, yc) => {
     const canv = $( '#drawSurf' )[0];
     const canvctxt = $( '#drawSurf' )[0].getContext('2d');
@@ -58,11 +62,22 @@ const drawCirc = (x, y, r, xc, yc) => {
     canvctxt.closePath()
     canvctxt.stroke()
     canvctxt.beginPath()
+    canvctxt.moveTo(x-5, y)
+    canvctxt.lineTo(x+5, y)
+    canvctxt.closePath()
+    canvctxt.stroke()
+    canvctxt.beginPath()
+    canvctxt.moveTo(x, y-5)
+    canvctxt.lineTo(x, y+5)
+    canvctxt.closePath()
+    canvctxt.stroke()
+    canvctxt.beginPath()
     canvctxt.arc(x, y, r, 0, 2 * Math.PI)
     canvctxt.stroke()
     canvctxt.closePath()
 }
 
+// check if xsel, ysel is on circle (x, y, r)
 const inCirc = (x, y, r, xsel, ysel) => {
     const rcurr = Math.sqrt(Math.pow(xsel - x, 2) + Math.pow(ysel - y, 2))
     return (rcurr > r - 10 && rcurr < r + 10) ? true : false
@@ -136,13 +151,15 @@ const canvasUp = () => {
     }
 }
 
+// element helper funcs
 const hideEl = (l) => l.style.visibility = 'hidden'
 const showEl = (l) => l.style.visibility = 'visible'
 
+// revert to original video when click adjust
 const dropManual = () => {
 	hideEl($( '#derotBut' )[0])
 	$( '#rpm' )[0].disabled = false
-	$( '#previewBut' )[0].value = "Preview"
+	$( '#previewBut' )[0].value = "Regenerate Preview"
 	changeInfo()
 	changeInstruction('Manually changing rotation circle or RPM. The auto-detected \
 	rotation circle (if found) is drawn. To specify the rotation circle \
@@ -153,15 +170,15 @@ const dropManual = () => {
 		sleep(500) //hacky hack
 		initCanvas()
 		const canv = $( '#drawSurf' )[0]
-		const canvctxt = canv.getContext('2d')
-		canvctxt.beginPath()
-		canvctxt.arc(getState().x / canv.scale_factor, getState().y / canv.scale_factor, 
-			getState().r / canv.scale_factor, 0, 2 * Math.PI)
-		canvctxt.stroke()
+		const sf = canv.scale_factor
+        drawCirc(getState().x / sf, getState().y / sf, getState().r / sf, 
+            getState().x / sf, getState().y / sf)
 		canv.drawable = true
 	})
 }
 
+// newSub = true => first submission
+// does not return until server gives reply
 const submitPreview = (newSub) => {
 	clearCanvas()
 	$( '#rpm' )[0].disabled = true
@@ -226,6 +243,8 @@ const submitPreview = (newSub) => {
 	})
 }
 
+// submit for full derotation
+// returns immediatly and starts wait loop to check HEAD
 const submitRot = () => {
 	const status = getState()
 	const r = new FormData()
@@ -249,6 +268,7 @@ const submitRot = () => {
 		},
 })}
 
+// wait loop function
 const pollWait = () => {
 	const status = getState()
 	if (status.waiting == undefined) {
@@ -296,8 +316,19 @@ const resizeVideo = () => {
 	vidIn.width = Math.round(og_w / vidIn.scale_factor)
 }
 
+// both canvas and video, drawing circle if exists
+const resizeBoth = () => {
+    resizeVideo()
+    initCanvas()
+    const canv = $( '#drawSurf' )[0]
+    const sf = canv.scale_factor
+    drawCirc(getState().x / sf, getState().y / sf, getState().r / sf, 
+        getState().x / sf, getState().y / sf)
+    canv.drawable = true
+}
+
 // resize listener
-window.onresize = resizeVideo;
+window.onresize = resizeBoth;
 
 // Event Listeners
 $(window).on('load', () => {
@@ -324,7 +355,11 @@ $(window).on('load', () => {
 			submitPreview(false);
 	})
 
-	$( '#derotBut' ).on('click', e =>  submitRot() )
+	$( '#derotBut' ).on('click', () =>  submitRot() )
+    // simple tooltip
+    $( '#sideBS' ).on('click', () => $('#sideBS')[0].checked ? 
+        showEl($('#SBShelp')[0]) : 
+        hideEl($('#SBShelp')[0]))
 
 	const getTouchPos = (canvasDom, touchEvent) => {
 		var rect = canvasDom.getBoundingClientRect();
@@ -334,7 +369,7 @@ $(window).on('load', () => {
 		};
 	}
 
-	// non-opencv Canvas visual circle listeners
+	//  circle listeners
 	const canv = $( '#drawSurf' )[0]
 	// touch listeners
 	canv.addEventListener('touchstart', (e) => {

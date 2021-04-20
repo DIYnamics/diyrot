@@ -1,3 +1,4 @@
+# python server which calls c++ code in dcppr/
 import os
 import random
 import string
