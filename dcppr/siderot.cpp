@@ -71,7 +71,7 @@ int main(int argc, const char* argv[]) {
     // equivalent to basename (get filename from path)
     // construct overlay text
     std::string overlaytxtup = "Derotated at " + strrpm.str() + " rpm.";
-    std::string overlaytxtlow = "Generated at diyrot.epss.ucla.edu";
+    std::string overlaytxtlow = "Generated using diyrot.epss.ucla.edu";
     // calculate origin, white color
     auto origup = cv::Point(0, out_frame.rows-30);
     auto origlow = cv::Point(0, out_frame.rows-5);

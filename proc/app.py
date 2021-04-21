@@ -7,7 +7,7 @@ from flask import Flask, request, send_file, send_from_directory, url_for, jsoni
 from werkzeug.utils import secure_filename
 
 # various settings meant for production environment
-_root_dir = '/var/www/diyrot.epss.ucla.edu/'
+_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'
 # allow override by setting envvar (during testing)
 if 'ROOT_DIR' in os.environ:
     _root_dir = os.environ['ROOT_DIR']
@@ -59,7 +59,7 @@ def save():
         # get form file object
         v = request.files['v']
         # pick name
-        vname = ''.join(random.choices(string.ascii_letters, k=20)) + os.path.splitext(v.filename)[-1]
+        vname = ''.join(random.choices(string.ascii_letters, k=5)) + os.path.splitext(v.filename)[-1]
         # pick path
         vpath = os.path.join(app.config['UPLOAD_FOLDER'], vname)
         # save, close

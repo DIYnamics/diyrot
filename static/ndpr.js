@@ -80,7 +80,7 @@ const drawCirc = (x, y, r, xc, yc) => {
 // check if xsel, ysel is on circle (x, y, r)
 const inCirc = (x, y, r, xsel, ysel) => {
     const rcurr = Math.sqrt(Math.pow(xsel - x, 2) + Math.pow(ysel - y, 2))
-    return (rcurr > r - 10 && rcurr < r + 10) ? true : false
+    return (rcurr > r - 13 && rcurr < r + 13) ? true : false
 }
 
 /* Canvas events:
@@ -161,14 +161,14 @@ const deboldEl = (l) => l.style.fontWeight = 'normal'
 const dropManual = () => {
 	hideEl($( '#derotBut' )[0])
 	$( '#rpm' )[0].disabled = false
-	$( '#square' )[0].disabled = false
+	$( '#fileInput' )[0].disabled = false
 	$( '#sideBS' )[0].disabled = false
 	$( '#previewBut' )[0].value = "Regenerate Preview"
 	changeInfo()
 	changeInstruction('Manually changing rotation circle or RPM. The auto-detected \
-    rotation circle (if found) is drawn. To specify the rotation circle \
+	rotation circle (if found) is drawn. <br> To specify the rotation circle \
 	yourself, click-drag your mouse from the circle center to anywhere \
-	on the edge of the circle. Once a suitable radius is selected, you can also \
+	on the edge of the circle. <br> Once a suitable radius is selected, you can also \
 	drag the circle around to adjust the rotation center.')
 	setVideo(URL.createObjectURL($('#fileInput')[0].files[0]), () => {
 		sleep(500) //hacky hack
@@ -186,7 +186,7 @@ const dropManual = () => {
 const submitPreview = (newSub) => {
 	clearCanvas()
 	$( '#rpm' )[0].disabled = true
-	$( '#square' )[0].disabled = true
+	$( '#fileInput' )[0].disabled = true
 	$( '#sideBS' )[0].disabled = true
     deboldEl($('#st1')[0])
     deboldEl($('#st2')[0])
@@ -340,12 +340,15 @@ const resizeVideo = () => {
 // both canvas and video, drawing circle if exists
 const resizeBoth = () => {
     resizeVideo()
-    initCanvas()
     const canv = $( '#drawSurf' )[0]
-    const sf = canv.scale_factor
-    drawCirc(getState().x / sf, getState().y / sf, getState().r / sf, 
-        getState().x / sf, getState().y / sf)
-    canv.drawable = true
+	if (canv.drawable) {
+		initCanvas()
+		const canv = $( '#drawSurf' )[0]
+		const sf = canv.scale_factor
+		drawCirc(getState().x / sf, getState().y / sf, getState().r / sf, 
+			getState().x / sf, getState().y / sf)
+		canv.drawable = true
+	}
 }
 
 // resize listener
