@@ -47,8 +47,8 @@ int main(int argc, const char* argv[]) {
 
     std::string overlaytxtup = "VISUAL PREVIEW";
     std::string overlaytxtlow = "CLICK \'DEROTATE\' FOR FULL QUALITY VIDEO";
-    auto origup = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-30);
-    auto origlow = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-5);
+    auto origup = cv::Point(0, 30);
+    auto origlow = cv::Point(0, 65);
     auto color = cv::Scalar(0, 0, 255);
 
     // main loop is a bit different - around 100 frames are written to output

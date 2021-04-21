@@ -45,10 +45,6 @@
 			</div>
 	</header>
 	<div class="container mt-3">
-        <p class="alert alert-info" style="font-size: 15px; font-weight: bold;" id="status">
-            Specify the rate of derotation, then select a video file to derotate.
-            <br> Need help? Don't have a spinny table set up yet? Check out the <a href="https://github.com/DIYnamics/diyrot/wiki"> wiki for tutorials and examples.</a>
-        </p>
 		<div class="form-group row">
             <label class="col-md-8 mb-0 col-form-label" for="rpm">RPM of rotating frame (positive is counterclockwise)</label>
             <div class="col-md-4">
@@ -62,23 +58,44 @@
             </div>
         </div>
 		<div class="form-group row">
-            <label class="form-check-label mb-0 col-md-8">(Advanced) Show original and derotated frames, side by side</label>
+            <label class="form-check-label mb-0 col-md-8">Show original and derotated frames, side by side (advanced)</label>
             <div class="col-md-4">
-                <input class="form-check-input" type="checkbox" id="sideBS"/>
+                <input class="form-check-input align-center" type="checkbox" id="sideBS"/>
             </div>
         </div>
         <div class="row">
-            <text id="SBShelp" style="visibility:hidden;color:blueviolet">
+            <text id="SBShelp" hidden style="color:blueviolet">
                 The preview derotation will not show the side by side view. Only the fully processed derotation video will.
             </text>
         </div>
+        <div class="row d-flex align-items-center">
+            <div class="col-md-8">
+                <p class="alert alert-info mb-0" style="font-size:15px;font-weight:bold" id="status">
+                    Specify the rate of derotation, then select a video file to derotate. <br>
+                    Need help? Don't have a spinny table set up yet? Check out the 
+                    <a href="https://github.com/DIYnamics/diyrot/wiki"> wiki for tutorials and examples.</a>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <ul class="alert alert-light mb-0" style="font-size:small">
+                    <li id="st1" style="font-weight:bolder"> Step 1: select rotation RPM and video file</li>
+                    <ul id="st10" hidden>
+                        <li id="st11">  Step 1.1: manually select rotation circle</li>
+                    </ul>
+                    <li id="st2"> Step 2: examine preview</li>
+                    <ul id="st20" hidden>
+                        <li id="st21"> Step 2.1: make adjustments and generate new preview</li>
+                    </ul>
+                    <li id="st3"> Step 3: wait for derotated video</li>
+                    <li id="st4"> Step 4: download full video</li>
+                </ul>
+            </div>
+        </div>
         <div class="row">
-			<br>
-			<progress style="visibility:hidden"></progress>
-			<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust"
-				style="visibility:hidden;background-color:red" />
-			<input class="btn btn-info form-control" type="submit" id="derotBut" value="Derotate"
-				style="visibility:hidden" />
+			<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust" hidden
+				style="background-color:red" />
+            <input class="btn btn-info form-control" type="submit" id="derotBut" value="Derotate" hidden />
+            <progress hidden></progress>
 		</div>
 		<div class="row mt-3 p-0">
 			<div id="vidDiv" class='p-0'>

@@ -152,17 +152,21 @@ const canvasUp = () => {
 }
 
 // element helper funcs
-const hideEl = (l) => l.style.visibility = 'hidden'
-const showEl = (l) => l.style.visibility = 'visible'
+const hideEl = (l) => l.hidden = true 
+const showEl = (l) => l.hidden = false
+const boldEl = (l) => l.style.fontWeight = 'bolder'
+const deboldEl = (l) => l.style.fontWeight = 'normal'
 
 // revert to original video when click adjust
 const dropManual = () => {
 	hideEl($( '#derotBut' )[0])
 	$( '#rpm' )[0].disabled = false
+	$( '#square' )[0].disabled = false
+	$( '#sideBS' )[0].disabled = false
 	$( '#previewBut' )[0].value = "Regenerate Preview"
 	changeInfo()
 	changeInstruction('Manually changing rotation circle or RPM. The auto-detected \
-	rotation circle (if found) is drawn. To specify the rotation circle \
+    rotation circle (if found) is drawn. To specify the rotation circle \
 	yourself, click-drag your mouse from the circle center to anywhere \
 	on the edge of the circle. Once a suitable radius is selected, you can also \
 	drag the circle around to adjust the rotation center.')
@@ -182,6 +186,12 @@ const dropManual = () => {
 const submitPreview = (newSub) => {
 	clearCanvas()
 	$( '#rpm' )[0].disabled = true
+	$( '#square' )[0].disabled = true
+	$( '#sideBS' )[0].disabled = true
+    deboldEl($('#st1')[0])
+    deboldEl($('#st2')[0])
+    hideEl($('#st10')[0])
+    hideEl($('#st20')[0])
 	const r = new FormData()
 	if (newSub) {
 		// file is not on server, this is a new upload
@@ -216,13 +226,17 @@ const submitPreview = (newSub) => {
 				Make sure the video looks correctly derotated; if so, click \'Derotate\' \
 				to get process the full video and get a download link. <br> If the \
 				video looks wrong, click \'Adjust\' to manually configure RPM and/or the center of derotation.')
+            boldEl($('#st2')[0])
 			showEl($( '#derotBut' )[0])
 		},
 		error: (d) => { 
 			saveState(d.responseText.split('\n')[0])
 			changeDanger()
-			changeInstruction('Your video was uploaded to the server, but the server couldn\'t find valid circle. <br> \
+			changeInstruction('Your video was uploaded to the server, but the server couldn\'t detect a valid circle. <br> \
 				Click \'Adjust\' to manually configure parameters, or pick a new file.')
+            showEl($('#st10')[0])
+            deboldEl($('#st1')[0])
+            boldEl($('#st11')[0])
 		},
 		complete: () => {
 			hideEl($( 'progress' )[0])
@@ -247,6 +261,11 @@ const submitPreview = (newSub) => {
 // returns immediatly and starts wait loop to check HEAD
 const submitRot = () => {
 	const status = getState()
+    deboldEl($('#st1')[0])
+    deboldEl($('#st2')[0])
+    hideEl($('#st10')[0])
+    hideEl($('#st20')[0])
+    boldEl($('#st3')[0])
 	const r = new FormData()
 	r.append('v', status.fn)
 	r.append('r', status.r)
@@ -287,6 +306,8 @@ const pollWait = () => {
 		$.ajax('/return/'+getState().src, {method: 'HEAD',
 			success: () => {
 				setState('waiting', undefined)
+                deboldEl($('#st3')[0])
+                boldEl($('#st4')[0])
 			},
 			error: () => {
 				saveState(JSON.stringify(status))
@@ -349,17 +370,26 @@ $(window).on('load', () => {
 	})
 	$( '#previewBut' ).on('click', e => {
 		var v = $( '#previewBut' )[0].value
-		if (v == "Adjust")
+		if (v == "Adjust") {
+            showEl($('#st20')[0])
+            boldEl($('#st21')[0])
+            deboldEl($('#st2')[0])
 			dropManual();
-		else
+        }
+		else {
 			submitPreview(false);
+        }
 	})
 
 	$( '#derotBut' ).on('click', () =>  submitRot() )
     // simple tooltip
-    $( '#sideBS' ).on('click', () => $('#sideBS')[0].checked ? 
-        showEl($('#SBShelp')[0]) : 
-        hideEl($('#SBShelp')[0]))
+    $( '#sideBS' ).on('click', () => {
+        if ($('#sideBS')[0].checked) {
+            showEl($('#SBShelp')[0])
+        } else {
+            hideEl($('#SBShelp')[0])
+        }
+    })
 
 	const getTouchPos = (canvasDom, touchEvent) => {
 		var rect = canvasDom.getBoundingClientRect();
