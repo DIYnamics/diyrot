@@ -30,11 +30,17 @@ Done:
 - center crosshair for circle [done]
 - application arch documentation, ndpr.js docs, per-file header description
 docs [done]
+- textual step by step instead of the current nonsense [done]
 
-TODO: 
-- textual step by step instead of the current nonsense
 
 Will not do (for a more motivated person than myself):
+- process reporting on upload and derotation:
+    - we would like the user to know how much time remains in the upload or derotation
+    - for upload, modify the process element length callback to somehow cache time passed
+        since last callback; use that to compute time left to upload
+    - for derotation, need some method of communicating between server and frontend.
+        - method 1: GET a special /progress/ endpoint, have derot.cpp write a number to files there
+        - method 2: w e b s o c k e t s
 - optimizations to derotation algorithm
     - currently `putText()` is called for every processed frame; would be more
         sensible to cache text drawing into a matrix and add that to main matrix
