@@ -300,7 +300,8 @@ const pollWait = () => {
 	const timesince = Math.floor((Date.now() - status.waiting) / 1000)
 	changeInfo()
     changeInstruction('Waiting for server to finish processing... this page will automatically update. \
-		Last refreshed ' + timesince  + ' seconds ago')
+		Last refreshed ' + timesince  + ' seconds ago. <br> \
+		Hang tight! Large videos (>100MB) may take up to 5 minutes to process.')
 	if (timesince > 10) {
 		status.waiting = Date.now()
 		$.ajax('/return/'+getState().src, {method: 'HEAD',
