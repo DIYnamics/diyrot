@@ -222,9 +222,9 @@ const submitPreview = (newSub) => {
 			saveState(d.split('\n')[0])
 			setVideo(getState().src)
 			changeWarning()
-			changeInstruction('Here is a rough preview of the first few seconds of the derotated video. <br> \
+			changeInstruction('Here is a rough preview of the first five seconds of derotated video. <br> \
 				Make sure the video looks correctly derotated; if so, click \'Derotate\' \
-				to get process the full video and get a download link. <br> If the \
+				to process the full video and get a download link. <br> If the \
 				video looks wrong, click \'Adjust\' to manually configure RPM and/or the center of derotation.')
             boldEl($('#st2')[0])
 			showEl($( '#derotBut' )[0])
