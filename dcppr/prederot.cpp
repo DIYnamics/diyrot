@@ -35,9 +35,9 @@ int main(int argc, const char* argv[]) {
     // preview emphasis is on speed, so interested in getting video out fast.
     // specify how many frames get read but not processed - 
     // 'skipped' for the output video
-    int skip = fps / 10;
+    int skip = fps / 10 > 0 ? fps / 10 : 1;
     // reduce framerate to 10fps 
-    auto vidout = cv::VideoWriter(outfn, codec, 10, dims);
+    auto vidout = cv::VideoWriter(outfn, codec, fps < 10 ? fps : 10, dims);
     int i = 0;
     int j = 0;
     double dtheta = -6 * rpm / (double) fps;
