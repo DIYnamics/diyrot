@@ -10,8 +10,8 @@ const changeSuccess = () => $('#status').attr('class', 'alert alert-success')
 const sleep = m => new Promise(r => setTimeout(r, m))
 
 // State cookie functions
-const saveState = (j) => document.cookie = "state=" + j + ";"
-const clearState = () => document.cookie = "state={}; expires=0;"
+const saveState = (j) => document.cookie = "state=" + j + "; samesite=lax"
+const clearState = () => document.cookie = "state={}; samesite=lax; expires=0;"
 
 // status of upload is stored a state object which is a cookie
 // state will have x/y/r of returned or drawn circle, filename on server, last HEAD time
@@ -165,13 +165,21 @@ const dropManual = () => {
 	$( '#sideBS' )[0].disabled = false
 	$( '#previewBut' )[0].value = "Regenerate Preview"
 	changeInfo()
-	changeInstruction('Manually changing rotation circle or RPM. The auto-detected \
-	rotation circle (if found) is drawn. <br> To specify the rotation circle \
-	yourself, click-drag your mouse from the circle center to anywhere \
-	on the edge of the circle. <br> Once a suitable radius is selected, you can also \
-	drag the circle around to adjust the rotation center.')
+    changeInstruction('Respecify RPM. Unfortunately, this program has determined that \
+        the video file given cannot be played in this browser. One common reason this occurs is \
+        for videos captured on an iPhone and/or with the \'.mov\' file type.<br>As such, \
+        the auto-detected rotation circle cannot be adjusted. If the location of the rotation \
+        circle was incorrect in preview, you will have to either use convert the \'.mov\' to \
+        \'.mp4\' (which can be done in <a href=\"https://handbrake.fr/\">Handbrake</a>) or use \
+        Apple\'s Safari browser.')
+
+    // cb is only called if video loads succ and is not 0x0
 	setVideo(URL.createObjectURL($('#fileInput')[0].files[0]), () => {
-		sleep(500) //hacky hack
+        changeInstruction('Respecify RPM, or change the rotation circle. The auto-detected \
+            rotation circle (if found) is drawn. <br> To specify the rotation circle \
+            yourself, click-drag your mouse from the circle center to anywhere \
+            on the edge of the circle. <br> Once a suitable radius is selected, you can also \
+            drag the circle around to adjust the rotation center.')
 		initCanvas()
 		const canv = $( '#drawSurf' )[0]
 		const sf = canv.scale_factor
@@ -319,12 +327,22 @@ const pollWait = () => {
 }
 
 // element maipulation 
-const setVideo = (vl, cb = () => {} ) => {
+async function setVideo (vl, cb = () => {} ) {
 	const vid = $( '#videoIn' )[0]
+    const oldsrc = vid.src
 	vid.loop = true
-	vid.src = vl
+    vid.src = vl
 	vid.load()
-	vid.play().then(cb())
+    await vid.play()
+    if (vid.videoWidth == 0 || vid.videoHeight == 0) {
+        // try to reload old video if unavailable
+        vid.src = oldsrc
+        vid.load()
+        vid.play()
+        return
+    }
+	resizeVideo()
+    cb()
 }
 
 const resizeVideo = () => {
@@ -369,19 +387,17 @@ $(window).on('load', () => {
 		setVideo(URL.createObjectURL(e.target.files[0]))
 		submitPreview(true)
 	})
-	$( '#videoIn' ).on('loadeddata', e => {
-		resizeVideo()
-	})
+
 	$( '#previewBut' ).on('click', e => {
 		var v = $( '#previewBut' )[0].value
 		if (v == "Adjust") {
             showEl($('#st20')[0])
             boldEl($('#st21')[0])
             deboldEl($('#st2')[0])
-			dropManual();
+	        dropManual();
         }
 		else {
-			submitPreview(false);
+	        submitPreview(false);
         }
 	})
 
