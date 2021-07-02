@@ -333,7 +333,7 @@ async function setVideo (vl, cb = () => {} ) {
 	vid.loop = true
     vid.src = vl
 	vid.load()
-    await vid.play()
+    await vid.play().catch(()=>{})
     if (vid.videoWidth == 0 || vid.videoHeight == 0) {
         // try to reload old video if unavailable
         vid.src = oldsrc

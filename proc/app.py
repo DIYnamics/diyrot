@@ -132,7 +132,8 @@ def opencv_detect(vidfp):
 def opencv_preview(vidfn, x, y, r, rpm):
     # appends '-pre' before extension in filename; frontend attempts to load
     # this video on return
-    fn, extn = os.path.splitext(vidfn)
+    fn, _ = os.path.splitext(vidfn)
+    extn = '.mp4'
     fn += '-pre'
     # waits for return; assuming this is a quick job
     subprocess.check_call([_root_dir+'/bin/prederot',
@@ -145,7 +146,8 @@ def opencv_derot(vidfn, x, y, r, rpm, sbs):
     # full quality derotation
     # start job and immediately return. up to frontend+nginx to keep track of
     # video derotation progress.
-    fn, extn = os.path.splitext(vidfn)
+    fn, _ = os.path.splitext(vidfn)
+    extn = '.mp4'
     # rename nicely with important metadata
     fn = "_".join(['diyrot', str(round(rpm))+'rpm', str(fn), 'derot'])
     if sbs == 'true':
