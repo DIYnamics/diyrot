@@ -233,7 +233,7 @@ const submitPreview = (newSub) => {
 			changeInstruction('Here is a rough preview of the first ten seconds of derotated video. <br> \
 				Make sure the video looks correctly derotated; if so, click \'Derotate\' \
 				to process the full video and get a download link. <br> If the \
-				video looks wrong, click \'Adjust\' to manually configure RPM and/or the center of derotation.')
+				video looks wrong, click \'Adjust\' to respecify RPM and/or the center of derotation.')
             boldEl($('#st2')[0])
 			showEl($( '#derotBut' )[0])
 		},
