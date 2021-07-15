@@ -7,7 +7,7 @@ from flask import Flask, request, send_file, send_from_directory, url_for, jsoni
 from werkzeug.utils import secure_filename
 
 # various settings meant for production environment
-_root_dir = '/var/www/dpr-dev.epss.ucla.edu/'
+_root_dir = '/var/www/diyrot.epss.ucla.edu/'
 # allow override by setting envvar (during testing)
 if 'ROOT_DIR' in os.environ:
     _root_dir = os.environ['ROOT_DIR']
