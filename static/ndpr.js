@@ -410,6 +410,36 @@ $(window).on('load', () => {
             hideEl($('#SBShelp')[0])
         }
     })
+    // change advanced dropdown text and class
+    $( '#advancedBut' ).on('click', () => {
+        $('#advancedCard').toggleClass('card card-body');
+        event.target.innerHTML = event.target.innerHTML.includes('+') ? 'Advanced [-]':'Advanced [+]';
+    })
+
+    // change tracking tooltip
+    $( '#manualTrack' ).on('click', () => {
+        if (event.target.checked) {
+            hideEl($('#autoTrackHelp')[0])
+            showEl($('#manualTrackHelp')[0])
+            showEl($('#trackExtra')[0])
+        } else {
+            $('#printTrack')[0].checked = false
+            hideEl($('#manualTrackHelp')[0])
+            hideEl($('#trackExtra')[0])
+        }
+    })
+
+    $( '#autoTrack' ).on('click', () => {
+        if (event.target.checked) {
+            hideEl($('#manualTrackHelp')[0])
+            showEl($('#autoTrackHelp')[0])
+            showEl($('#trackExtra')[0])
+        } else {
+            $('#printTrack')[0].checked = false
+            hideEl($('#autoTrackHelp')[0])
+            hideEl($('#trackExtra')[0])
+        }
+    })
 
 	const getTouchPos = (canvasDom, touchEvent) => {
 		var rect = canvasDom.getBoundingClientRect();

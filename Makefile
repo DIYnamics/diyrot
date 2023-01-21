@@ -1,5 +1,5 @@
-#ROOT_DIR = /var/www/
-#site = diyrot.epss.ucla.edu
+ROOT_DIR = /Users/alch/Desktop/diyrot/
+site = ""
 #site = dpr-dev.epss.ucla.edu
 export ROOT_DIR
 export site
@@ -25,6 +25,6 @@ install:
 uninstall:
 	#systemctl stop nginx.service
 	#systemctl stop netdpr.service
-	rm -fdr $(ROOT_DIR)/$(site)/
+	#rm -fdr $(ROOT_DIR)/$(site)/
 
 reinstall: uninstall install

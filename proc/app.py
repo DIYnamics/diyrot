@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 # various settings meant for production environment
 # note: DO NOT COMMIT CHANGES to this var. Instead, override (see below) during
 # testing, if needed.
-_root_dir = '/var/www/diyrot.epss.ucla.edu/'
+_root_dir = '/Users/alch/Desktop/diyrot'
 # allow override by setting envvar (during testing)
 if 'ROOT_DIR' in os.environ:
     _root_dir = os.environ['ROOT_DIR']

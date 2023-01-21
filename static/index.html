@@ -54,19 +54,51 @@
 		<div class="form-group row">
             <label class="col-md-8 mb-0 col-form-label" for="fileInput">Select a file</label>
             <div class="col-md-4">
-                <input class="form-control" type="file" id="fileInput" accept="video/*" />
+                <input class="form-control" type="file" id="fileInput" autocomplete=off accept="video/*" />
             </div>
         </div>
-		<div class="form-group row">
-            <label class="form-check-label mb-0 col-md-8">Show original and derotated frames, side by side (advanced)</label>
-            <div class="col-md-4">
-                <input class="form-check-input align-center" type="checkbox" id="sideBS"/>
+		<div id="advancedCard">
+            <label id="advancedBut" data-bs-toggle="collapse" href="#advancedCollapse" role="button" 
+                class="mb-0 col-form-label" aria-expaned="false">Advanced [+]</label>
+            <div class="collapse" id="advancedCollapse">
+                <div class="row"> <text>
+                    Perform one of two types of object tracking:
+                </text> </div>
+                <div class="row" style="margin-left: 10px">
+                    <div>
+                    <label class="form-check-label mb-0" for="manualTrack">
+                        <input class="form-check-input" type="checkbox" id="manualTrack" autocomplete=off onclick="$('#autoTrack')[0].checked=false"/> Manually pick point(s) of interest 
+                    </label>
+                    </div>
+                    <div>
+                    <label class="form-check-label mb-0" for="autoTrack">
+                        <input class="form-check-input" type="checkbox" id="autoTrack" autocomplete=off onclick="$('#manualTrack')[0].checked=false"/> Automatically pick points from a donut zone
+                    </label>
+                    </div>
+                    <div id="trackExtra" hidden>
+                        <div>
+                        <text id="manualTrackHelp" hidden style="color:blueviolet">You'll be asked to pick points to track from the first frame of the video.</text>
+                        <text id="autoTrackHelp" hidden style="color:blueviolet">An algorithm will pick ~50 points from the first frame within the area of rotation,
+                         optionally excluding an area in the middle.</text>
+                        </div>
+                        <div>
+                        <label class="form-check-label mb-0" style="margin-left:5px" for="printTrack">
+                            <input class="form-check-input" type="checkbox" id="printTrack" autocomplete=off /> Export list of tracked points in rotating frame
+                        </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <label class="form-check-label mb-0" for="sideBS">
+                        <input class="form-check-input" type="checkbox" id="sideBS"/> Show both original and derotated frames 
+                    </label>
+                </div>
+                <div style="margin-left:5px">
+                    <text id="SBShelp" hidden style="color:blueviolet">
+                        The preview derotation will not show the side by side view. Only the fully processed derotation video will.
+                    </text>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <text id="SBShelp" hidden style="color:blueviolet">
-                The preview derotation will not show the side by side view. Only the fully processed derotation video will.
-            </text>
         </div>
         <div class="row d-flex align-items-center">
             <div class="col-md-8">
@@ -88,6 +120,7 @@
                     <ul id="st20" hidden>
                         <li id="st21"> Step 2.1: adjust RPM and/or rotation circle, then generate new preview</li>
                     </ul>
+                    <li id="stadvman"> Extra manual tracking step: pick points of interest to 
                     <li id="st3"> Step 3: wait for server to derotate video</li>
                     <li id="st4"> Step 4: download full quality derotated video</li>
                 </ul>
@@ -109,7 +142,7 @@
 	<hr>
 	<footer class="footer navbar-inverse">
 		<div class="container" style="font-size:small">
-			DIYRotate works best on Firefox or Chrome. On Safari, users may not be able to complete video uploads >100MB.
+			DIYRotate works best on Firefox or Chrome. On Safari/iOS, users may not be able to complete video uploads >100MB.
 		</div>
 		<br>
 		<div class="container" style="font-size:small">
