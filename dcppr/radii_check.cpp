@@ -13,19 +13,21 @@ int main(int argc, const char* argv[]) {
     // extract filename from first argumnent
     const char* filename = argv[1];
     // open video
-    auto vid = cv::VideoCapture(filename);
+    auto in_vidcap = cv::VideoCapture(filename);
 
-    cv::Mat frame;
+    cv::Mat working_frame;
     // extract video frame, or fail
-    if (!vid.read(frame))
+    if (!in_vidcap.read(working_frame))
         return(-2);
 
+    const cv::Size kWorkingFrameDims = working_frame.size();
+
     // convert read video frame to grayscale
-    cv::Mat frame_gray;
-    cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
+    cv::Mat working_frame_gray;
+    cv::cvtColor(working_frame, working_frame_gray, cv::COLOR_BGR2GRAY);
     // gaussian blur said frame (make circle detection more robust)
-    cv::Mat frame_blur;
-    cv::medianBlur(frame_gray, frame_blur, 5);
+    cv::Mat working_frame_blur;
+    cv::medianBlur(working_frame_gray, working_frame_blur, 5);
     // vector of cv::Vec (collection of circles)
     std::vector<cv::Vec3f> circles;
 
@@ -34,8 +36,14 @@ int main(int argc, const char* argv[]) {
     // the distance between circles centers should be 30% of the smaller of the
     // two video dimensions. While 30% is arbitrary, it does prevent hough from
     // finding too many circles.
-    cv::HoughCircles(frame_blur, circles, cv::HOUGH_GRADIENT, 1.5, 
-        std::min(vid.get(cv::CAP_PROP_FRAME_WIDTH), vid.get(cv::CAP_PROP_FRAME_HEIGHT)) * 0.3, 300, 100);
+    cv::HoughCircles(working_frame_blur,
+                    circles,
+                    cv::HOUGH_GRADIENT,
+                    1.5, 
+                    0.3 * std::min(kWorkingFrameDims.height, 
+                                   kWorkingFrameDims.width),
+                    300,
+                    100);
 
     // if no circles found, return
     if (circles.size() < 1)

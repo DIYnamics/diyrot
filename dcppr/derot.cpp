@@ -11,9 +11,9 @@ int main(int argc, const char* argv[]) {
     // for the highest os/web browser compatibility.
     auto codec = cv::VideoWriter::fourcc('a', 'v', 'c', '1');
 
-    // ./bin FILE X Y R RPM OUTFILE
+    // ./bin FILE X Y R RPM SBS OUTFILE
     // return 255 if not the case that all six arguments are present
-    if (argc != 7)
+    if (argc != 8)
         return(-1);
     // instantiate filename var, which is first argument in invokation
     std::string filename = std::string(argv[1]);
@@ -24,10 +24,11 @@ int main(int argc, const char* argv[]) {
     int radii = atoi(argv[4]);
     // rpm indicated. strtod is string to double - see c library documentation
     double rpm = strtod(argv[5], NULL);
+    bool side_by_side = atoi(argv[6]); // any non-zero is true
     // instantiate output filename, last argument in invokaction
     // note that the container type is specified by the output filename
     // (we will always use .mp4)
-    std::string outfn = std::string(argv[6]);
+    std::string outfn = std::string(argv[7]);
     std::string tmpfn = outfn;
     auto f = outfn.find_last_of("/");
     f = (f == std::string::npos) ? 0 : f+1;
@@ -46,7 +47,6 @@ int main(int argc, const char* argv[]) {
     // fps can be non-integer! think as inverse of seconds-per-frame: frames are discrete, seconds
     // taken do not have to be.
     double fps = vid.get(cv::CAP_PROP_FPS);
-    //double total_frames = vid.get(cv::CAP_PROP_FRAME_COUNT);
     // get video size, store in Size object.
     auto dims = cv::Size(vid.get(cv::CAP_PROP_FRAME_WIDTH), vid.get(cv::CAP_PROP_FRAME_HEIGHT));
     // set up circle of interest masking. 8UC1 means 8-bit unsigned, 1 channel; this typing fits
@@ -59,12 +59,27 @@ int main(int argc, const char* argv[]) {
     // not what we are interested in.
     cv::bitwise_not(center_mask, center_mask);
 
+    // calculate side by side variables, but don't necessarily use them
+    auto regin = cv::Rect(
+        cv::Point(circ.x - radii > 0 ? circ.x - radii : 0,
+            circ.y - radii > 0 ? circ.y - radii : 0),
+        cv::Point(circ.x + radii < dims.width ? circ.x + radii : dims.width,
+            circ.y + radii < dims.height ? circ.y + radii : dims.height));
+    auto regout = cv::Rect(0, 30, regin.width, regin.height);
+    auto derotin = cv::Rect(regin);
+    auto derotout = cv::Rect(regin.width + 10, 30, derotin.width, derotin.height);
+    auto outdims = cv::Size(regin.width + derotin.width + 10, 30 + std::max(regin.height, derotin.height));
+    // set up output frame to write to
+    cv::Mat out_frame = cv::Mat::zeros(outdims, vid_frame.type());
+
+
     // open an output video using our output filename/container, avc codec, original video's fps,
     // and original video's dimensions. note that the fps may be slightly rounded between input video
     // and output video. I'm not sure why this is the case.
     // additionally, prepend 'TMP' to file name so that slow systems do not break
-    auto vidout = cv::VideoWriter(tmpfn, codec, fps, dims);
     // incremental angle change for each frame
+    // create a different sized output depending on whether side by side
+    auto vidout = cv::VideoWriter(tmpfn, codec, fps, side_by_side ? outdims : dims);
     double i = 0.0;
     // change in degree angle per frame.
     // explaination:
@@ -82,17 +97,20 @@ int main(int argc, const char* argv[]) {
     std::ostringstream strrpm;
     strrpm.precision(2);
     strrpm << std::fixed << rpm;
-    // equivalent to basename (get filename from path)
-    // but don't actually do this, bc file gets renamed before processsing
-    //auto f = filename.find_last_of("/");
-    //std::string basename = (f == std::string::npos) ? filename : filename.substr(f+1);
+
     // construct overlay text
-    //std::string overlaytxtup = basename + " derotated at " + strrpm.str() + " rpm.";
     std::string overlaytxtup = "Derotated at " + strrpm.str() + " rpm.";
     std::string overlaytxtlow = "Generated using diyrot.epss.ucla.edu";
     // calculate origin, white color
     auto origup = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-30);
     auto origlow = cv::Point(0, (int)vid.get(cv::CAP_PROP_FRAME_HEIGHT)-5);
+    // use extra variables and overwrite previous for side-by-side
+    auto origleft = cv::Point(out_frame.cols / 4 - 50, 20);
+    auto origright = cv::Point(out_frame.cols * 3 / 4 - 60, 20);
+    if (side_by_side) {
+        origup = cv::Point(0, out_frame.rows-30);
+        origlow = cv::Point(0, out_frame.rows-5);
+    }
     auto color = cv::Scalar(255, 255, 255, 127.5);
 
     // main derotation loop. if vid.read() fails (likely due to end of file), stop loop.
@@ -100,16 +118,28 @@ int main(int argc, const char* argv[]) {
     do {
         // increase derotation angle for by amount for 1 frame
         i += dtheta;
-        // warp in-place (reusing vid_frame), using a rotation matrix centered at circle of interest's
-        // center, with rotation angle i, and no 'resizing' (1.0). specify size of vid_frame as expected.
-        cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i, 1.0), dims);
-        // bitwise and 0 (make black) vid_frame in place, but only for pixels where center_mask != 0.
-        // this is every pixel outside the circle of interest.
-        cv::bitwise_and(vid_frame, 0, vid_frame, center_mask);
-        cv::putText(vid_frame, overlaytxtup, origup, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
-        cv::putText(vid_frame, overlaytxtlow, origlow, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
-        // write vid_frame to the video. equivalent to vidout.write(vid_frame)
-        vidout << vid_frame;
+        if (!side_by_side) {
+            // warp in-place (reusing vid_frame), using a rotation matrix centered at circle of interest's
+            // center, with rotation angle i, and no 'resizing' (1.0). specify size of vid_frame as expected.
+            cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i, 1.0), dims);
+            // bitwise and 0 (make black) vid_frame in place, but only for pixels where center_mask != 0.
+            // this is every pixel outside the circle of interest.
+            cv::bitwise_and(vid_frame, 0, vid_frame, center_mask);
+            cv::putText(vid_frame, overlaytxtup, origup, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
+            cv::putText(vid_frame, overlaytxtlow, origlow, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
+            // write vid_frame to the video. equivalent to vidout.write(vid_frame)
+            vidout << vid_frame;
+        } else {
+            vid_frame(regin).copyTo(out_frame(regout));
+            cv::warpAffine(vid_frame, vid_frame, cv::getRotationMatrix2D(circ, i, 1.0), dims);
+            cv::bitwise_and(vid_frame, 0, vid_frame, center_mask);
+            vid_frame(derotin).copyTo(out_frame(derotout));
+            cv::putText(out_frame, overlaytxtup, origup, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
+            cv::putText(out_frame, overlaytxtlow, origlow, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 2, cv::LINE_AA);
+            cv::putText(out_frame, "Original", origleft, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 1, cv::LINE_AA);
+            cv::putText(out_frame, "Derotated", origright, cv::FONT_HERSHEY_COMPLEX_SMALL, 1, color, 1, cv::LINE_AA);
+            vidout << out_frame;
+        }
     } while(vid.read(vid_frame));
 
     // finish processing the output video, and close the file
