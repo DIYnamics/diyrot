@@ -9,7 +9,8 @@ from werkzeug.utils import secure_filename
 # various settings meant for production environment
 # note: DO NOT COMMIT CHANGES to this var. Instead, override (see below) during
 # testing, if needed.
-_root_dir = '/Users/alch/Desktop/diyrot'
+#_root_dir = '/Users/alch/Desktop/diyrot'
+print('ROOT DIR needs to be set before uploading')
 # allow override by setting envvar (during testing)
 if 'ROOT_DIR' in os.environ:
     _root_dir = os.environ['ROOT_DIR']
@@ -95,6 +96,26 @@ def prev():
                     'r': request.form['r'],
                     'src': '/return/'+preview_fn}), 200
 
+@app.route('/advpreview/', methods=['POST'])
+def advprev():
+    try:
+        adv_preview_fn = opencv_adv_preview(request.form['v'], \
+             float(request.form['x']), \
+             float(request.form['y']), \
+             float(request.form['r']), \
+             float(request.form['rpm']), \
+             request.form['adv'], \
+             request.form['advData'])
+    except Exception as e:
+        # prints are connected to syslog and viewable thru monitoring
+        print(" ".join(["error in advanced preview", str(request.form), str(e)]), flush=True)
+        return "", 500
+    return jsonify({'fn': request.form['v'],
+                    'x': request.form['x'],
+                    'y': request.form['y'],
+                    'r': request.form['r'],
+                    'src': '/return/'+adv_preview_fn}), 200
+
 @app.route('/derot/', methods=['POST'])
 def derot():
     try:
@@ -109,6 +130,24 @@ def derot():
     except Exception as e:
         # prints are connected to syslog and viewable thru monitoring
         print(" ".join(["error in derot", str(request.form), str(e)]), flush=True)
+        return "", 500
+
+@app.route('/advderot/', methods=['POST'])
+def advderot():
+    try:
+        # derotated a video that passes preview
+        r = opencv_derot(request.form['v'], \
+             float(request.form['x']), \
+             float(request.form['y']), \
+             float(request.form['r']), \
+             float(request.form['rpm']), \
+             request.form['sbs'], \
+             request.form['adv'], \
+             request.form['advData'])
+        return r, 200
+    except Exception as e:
+        # prints are connected to syslog and viewable thru monitoring
+        print(" ".join(["error in advderot", str(request.form), str(e)]), flush=True)
         return "", 500
 
 @app.route('/count/')
@@ -144,25 +183,42 @@ def opencv_preview(vidfn, x, y, r, rpm):
                         os.path.join(_root_dir, 'return', fn+extn)])
     return fn+extn
 
-def opencv_derot(vidfn, x, y, r, rpm, sbs):
+def opencv_adv_preview(vidfn, x, y, r, rpm, adv, adv_data):
+    fn, _ = os.path.splitext(vidfn)
+    extn = '.mp4'
+    fn += '-advpre'
+    # waits for return; assuming this is a quick job
+    subprocess.check_call([_root_dir+'/bin/adv_prederot',
+                        os.path.join(_root_dir, 'uploads', vidfn),
+                        str(x), str(y), str(r), str(rpm),
+                       '1' if adv == 'auto' else '0', adv_data,
+                        os.path.join(_root_dir, 'return', fn+extn)])
+    return fn+extn
+
+def opencv_derot(vidfn, x, y, r, rpm, sbs, adv='', advData='', exportCsv='', visForce=''):
     # full quality derotation
     # start job and immediately return. up to frontend+nginx to keep track of
     # video derotation progress.
     fn, _ = os.path.splitext(vidfn)
     extn = '.mp4'
+
     # rename nicely with important metadata
     fn = "_".join(['diyrot', str(round(rpm))+'rpm', str(fn), 'derot'])
-    if sbs == 'true':
-        # run side by side job
-        subprocess.Popen([_root_dir+'/bin/siderot',
-                            os.path.join(_root_dir, 'uploads', vidfn),
-                            str(x), str(y), str(r), str(rpm),
-                            os.path.join(_root_dir, 'return', fn+extn)])
-    else:
-        # run regular job
+    # run regular job
+    if adv == '':
         subprocess.Popen([_root_dir+'/bin/derot',
                             os.path.join(_root_dir, 'uploads', vidfn),
-                            str(x), str(y), str(r), str(rpm),
+                            str(x), str(y), str(r), str(rpm), '1' if sbs == 'true' else '0',
+                            os.path.join(_root_dir, 'return', fn+extn)])
+    else: 
+        subprocess.Popen([_root_dir+'/bin/advderot',
+                            os.path.join(_root_dir, 'uploads', vidfn),
+                            str(x), str(y), str(r), str(rpm), 
+                            '1' if sbs == 'true' else '0',
+                            '1' if adv == 'auto' else '0',
+                            advData,
+                            '1' if exportCsv == 'true' else '0',
+                            '1' if visForce == 'true' else '0',
                             os.path.join(_root_dir, 'return', fn+extn)])
     return fn+extn
 

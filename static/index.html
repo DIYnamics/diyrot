@@ -62,17 +62,17 @@
                 class="mb-0 col-form-label" aria-expaned="false">Advanced [+]</label>
             <div class="collapse" id="advancedCollapse">
                 <div class="row"> <text>
-                    Perform one of two types of object tracking:
+                    Track objects in video by one of the two following methods:
                 </text> </div>
                 <div class="row" style="margin-left: 10px">
                     <div>
                     <label class="form-check-label mb-0" for="manualTrack">
-                        <input class="form-check-input" type="checkbox" id="manualTrack" autocomplete=off onclick="$('#autoTrack')[0].checked=false"/> Manually pick point(s) of interest 
+                        <input class="form-check-input" type="checkbox" id="manualTrack" autocomplete=off /> Manually pick point(s) of interest
                     </label>
                     </div>
                     <div>
                     <label class="form-check-label mb-0" for="autoTrack">
-                        <input class="form-check-input" type="checkbox" id="autoTrack" autocomplete=off onclick="$('#manualTrack')[0].checked=false"/> Automatically pick points from a donut zone
+                        <input class="form-check-input" type="checkbox" id="autoTrack" autocomplete=off /> Automatically pick points from a donut zone
                     </label>
                     </div>
                     <div id="trackExtra" hidden>
@@ -82,8 +82,13 @@
                          optionally excluding an area in the middle.</text>
                         </div>
                         <div>
-                        <label class="form-check-label mb-0" style="margin-left:5px" for="printTrack">
-                            <input class="form-check-input" type="checkbox" id="printTrack" autocomplete=off /> Export list of tracked points in rotating frame
+                        <label class="form-check-label mb-0" style="margin-left:10px" for="printTrack">
+                            <input class="form-check-input" type="checkbox" id="printTrack" autocomplete=off /> Download list of tracked points in rotating frame as .csv file
+                        </label>
+                        </div>
+                        <div>
+                        <label class="form-check-label mb-0" style="margin-left:10px" for="visForce">
+                            <input class="form-check-input" type="checkbox" id="visForce" autocomplete=off /> Visualize centripetal force for each point
                         </label>
                         </div>
                     </div>
@@ -110,7 +115,7 @@
                     <a href="https://diynamics.github.io/pages/diyrotate.html"> diynamics page </a> for tutorials and examples. <br>
                 </p>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" style="z-index:-1">
                 <ul class="alert alert-light mb-0" style="font-size:small">
                     <li id="st1" style="font-weight:bolder"> Step 1: select rotation RPM and video file</li>
                     <ul id="st10" hidden>
@@ -119,27 +124,30 @@
                     <li id="st2"> Step 2: examine preview</li>
                     <ul id="st20" hidden>
                         <li id="st21"> Step 2.1: adjust RPM and/or rotation circle, then generate new preview</li>
+                        <li id="stadvman" hidden> Step 2.2: pick points of interest to track </li>
+                        <li id="stadvauto" hidden> Step 2.2: pick area of interest to track </li>
+                        <li id="st23" hidden> Step 2.3: examine preview of object tracking </li>
                     </ul>
-                    <li id="stadvman"> Extra manual tracking step: pick points of interest to 
-                    <li id="st3"> Step 3: wait for server to derotate video</li>
+                    <li id="st3"> Step 3: server derotates video</li>
                     <li id="st4"> Step 4: download full quality derotated video</li>
                 </ul>
             </div>
         </div>
         <div class="row">
-			<input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust" hidden
-				style="background-color:red" />
+            <input class="btn btn-info form-control" type="submit" id="previewBut" value="Adjust" hidden style="background-color:red" />
+            <input class="btn btn-info form-control" type="submit" id="advBut" value="Next step" hidden />
             <input class="btn btn-info form-control" type="submit" id="derotBut" value="Derotate" hidden />
             <progress hidden></progress>
-		</div>
-		<div class="row mt-3 p-0">
-			<div id="vidDiv" class='p-0'>
-				<canvas class="" id="drawSurf" style="position:absolute;z-index:2"></canvas>
-				<video class="" loop playsinline muted=true id="videoIn" style="position:relative;z-index:0" />
-			</div>
-		</div>
-	</div>
-	<hr>
+        </div>
+        <div class="row mt-3 p-0">
+            <div id="vidDiv" class='p-0'>
+                <canvas class="" id="drawSurf" style="position:absolute;z-index:2"></canvas>
+                <img class="" id="previewPic" hidden style="position:relative;z-index:0" />
+                <video class="" loop playsinline muted=true id="videoIn" style="position:relative;z-index:0" />
+            </div>
+        </div>
+    </div>
+    <hr>
 	<footer class="footer navbar-inverse">
 		<div class="container" style="font-size:small">
 			DIYRotate works best on Firefox or Chrome. On Safari/iOS, users may not be able to complete video uploads >100MB.
