@@ -4,5 +4,3 @@ install-proc:
 	cp netdpr.service /etc/systemd/system/netdpr.service
 	systemctl daemon-reload
 	systemctl start netdpr.service
-	
-

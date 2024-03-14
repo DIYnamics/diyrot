@@ -35,11 +35,18 @@ server {
 		uwsgi_pass unix:/tmp/upload.sock;
 	}
 
+	location /advpreview/ {
+		include uwsgi_params;
+		uwsgi_pass unix:/tmp/upload.sock;
+	}
+
+	location /count/ {
+		include uwsgi_params;
+		uwsgi_pass unix:/tmp/upload.sock;
+	}
+
 	location / {
 		index index.html;
 	}
-
-    
-
 
 }

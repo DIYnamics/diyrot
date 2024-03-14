@@ -68,10 +68,6 @@ int main(int argc, const char* argv[]) {
 #endif
 #endif 
 
-    std::string test = "Generated using diyrot.epss.ucla.edu";
-    auto out = getStringSize(test);
-    std::cout << out.width << " " << out.height << std::endl;
-
     if (!kRPM || errno == ERANGE)
         return -1; // something happened with input processing
 

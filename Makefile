@@ -1,10 +1,18 @@
-ROOT_DIR = /Users/alch/Desktop/diyrot/
-site = ""
-#site = dpr-dev.epss.ucla.edu
+ROOT_DIR = $(if DEV,$(CURDIR),/srv/)
+site = $(if DEV,,dpr-dev.epss.ucla.edu)
 export ROOT_DIR
 export site
 
-default:
+default: $(if DEV, dev, status)
+
+dev:
+	rm -fdr $(ROOT_DIR)/$(site)/return $(ROOT_DIR)/$(site)/uploads
+	mkdir -p -m 777 $(ROOT_DIR)/$(site)/return
+	mkdir -p -m 777 $(ROOT_DIR)/$(site)/uploads
+	make -C dcppr/ install-bin
+	cd proc && python3 app.py
+
+status:
 	systemctl status netdpr.service
 	systemctl status nginx.service
 
@@ -19,12 +27,12 @@ install:
 	mkdir -p $(ROOT_DIR)/$(site)/uploads -m 777
 	make -C static/ install-static
 	make -C dcppr/ install-bin
-	#make -C proc/ install-proc
-	#make -C nginx/ install-nginx
+	make -C proc/ install-proc
+	make -C nginx/ install-nginx
 
 uninstall:
-	#systemctl stop nginx.service
-	#systemctl stop netdpr.service
-	#rm -fdr $(ROOT_DIR)/$(site)/
+	systemctl stop nginx.service
+	systemctl stop netdpr.service
+	rm -fdr $(ROOT_DIR)/$(site)/
 
 reinstall: uninstall install

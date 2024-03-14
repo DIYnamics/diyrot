@@ -326,7 +326,7 @@ const dropManual = () => {
     boldEl('#st21')
     deboldEl('#st2')
     hideEl('#advBut', '#derotBut', '#videoIn')
-    $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #printTrack' ).prop('disabled', false)
+    $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV' ).prop('disabled', false)
     $( '#previewBut' )[0].value = "Regenerate Preview"
     setInfo('Respecify RPM, or change the rotation circle. The auto-detected \
         rotation circle (if found) is drawn. <br> To specify the rotation circle \
@@ -381,12 +381,13 @@ const submitPreview = (newSub) => {
         r.append('y', s.y)
     }
     r.append('rpm', $('#rpm')[0].value)
+    r.append('sbs', $('#sideBS')[0].checked)
     $.ajax(newSub ? '/upload/' : '/preview/', {
         method: 'POST', data: r, dataType: 'text', contentType: false, processData: false,
         beforeSend: () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
-            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #printTrack' ).prop('disabled', true)
+            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV' ).prop('disabled', true)
             deboldEl('#st1', '#st2')
             hideEl('#st10', '#st20', '#previewBut')
             if(newSub)
@@ -444,14 +445,16 @@ const submitAdvPreview = () => {
     r.append('x', s.x)
     r.append('y', s.y)
     r.append('rpm', $('#rpm')[0].value)
+    r.append('sbs', $('#sideBS')[0].checked)
     r.append('adv', isAdvanced())
     r.append('advData', isAdvanced() == 'manual' ? s.points.toString() : s.r_a)
+    r.append('visForce', $('#visForce')[0].checked)
     $.ajax('/advpreview/', {
         method: 'POST', data: r, dataType: 'text', contentType: false, processData: false,
         beforeSend: () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
-            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #printTrack' ).prop('disabled', true)
+            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV' ).prop('disabled', true)
             deboldEl('#st1', '#st2', '#st21', '#st23')
             hideEl('#st10', '#st20', '#st23', '#advBut')
             setInfo('Generating preview of object tracking...')
@@ -495,6 +498,8 @@ const submitRot = () => {
         r.append('adv', isAdvanced())
         r.append('advData', isAdvanced() == 'manual' ? 
             status.points.toString() : status.r_a)
+        r.append('visForce', $('#visForce')[0].checked)
+        r.append('exportCSV', $('#exportCSV')[0].checked)
     }
     $.ajax(endpoint, { method: 'POST', data: r, dataType: 'text',
         contentType: false, processData: false,
@@ -657,7 +662,7 @@ $(window).on('load', () => {
             hideEl('#autoTrackHelp', '#stadvauto')
             showEl('#manualTrackHelp', '#trackExtra', '#stadvman')
         } else {
-            $('#printTrack')[0].checked = false
+            $('#exportCSV')[0].checked = false
             hideEl('#manualTrackHelp', '#trackExtra', '#stadvman')
         }
     })
@@ -668,7 +673,7 @@ $(window).on('load', () => {
             hideEl('#manualTrackHelp', '#stadvman')
             showEl('#autoTrackHelp', '#trackExtra', '#stadvauto')
         } else {
-            $('#printTrack')[0].checked = false
+            $('#exportCSV')[0].checked = false
             hideEl('#autoTrackHelp', '#trackExtra', '#stadvauto')
         }
     })
