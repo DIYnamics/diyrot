@@ -35,6 +35,20 @@
 #include <opencv2/video/tracking.hpp>
 #include <vector>
 
+/*
+    Argument API:
+    0 ./bin 
+    1     FILENAME:str
+    2     X:double
+    3     Y:double
+    4     R:double
+    5     RPM:double
+    6     FILENAME:str
+    7  [[ ADV_AUTO:'0'/'1'
+    8     ADV_DATA:str ]
+    9     ADV_CSV:'0'/'1'
+       ]
+*/
 
 int main(int argc, const char* argv[]) {
     if (argc != ARGC_COUNT)
@@ -42,7 +56,7 @@ int main(int argc, const char* argv[]) {
     const std::string kInputFn = std::string(argv[1]);
     const auto kRotCenter = 
         cv::Point2f(strtod(argv[2], NULL), strtod(argv[3], NULL));
-    const int kRotRadius = atoi(argv[4]);
+    const double kRotRadius = strtod(argv[4], NULL);
     const double kRPM = strtod(argv[5], NULL);
     const std::string kOutputFn = std::string(argv[6]);
 #if defined(ADVANCED)
@@ -79,11 +93,11 @@ int main(int argc, const char* argv[]) {
     const double kdTheta = -6.0 * kRPM / kInVidFPS;
     
     const cv::Rect kWorkingFrameROI = cv::Rect(
-        cv::Point(std::max(static_cast<float>(0), kRotCenter.x - kRotRadius),
-                  std::max(static_cast<float>(0), kRotCenter.y - kRotRadius)),
-        cv::Point(std::min(static_cast<float>(kWorkingFrameSize.width), 
+        cv::Point(std::max(static_cast<double>(0), kRotCenter.x - kRotRadius),
+                  std::max(static_cast<double>(0), kRotCenter.y - kRotRadius)),
+        cv::Point(std::min(static_cast<double>(kWorkingFrameSize.width), 
                           kRotCenter.x + kRotRadius),
-                  std::min(static_cast<float>(kWorkingFrameSize.height),
+                  std::min(static_cast<double>(kWorkingFrameSize.height),
                           kRotCenter.y + kRotRadius)));
 
     // this function returns a different struct with extra data if SIDE_BY_SIDE is defined

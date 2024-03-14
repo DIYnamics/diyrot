@@ -53,6 +53,6 @@ int main(int argc, const char* argv[]) {
     std::cout << (int)circles[0][0] << " " << (int)circles[0][1] << " " << (int)circles[0][2];
 
     // close video, exit
-    vid.release();
+    in_vidcap.release();
     return EXIT_SUCCESS;
 }
