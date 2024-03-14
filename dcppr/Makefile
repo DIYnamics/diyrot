@@ -1,44 +1,22 @@
-.PHONY: all radii derot prederot adv_prederot adv_derot sbs_derot sbs_prederot sbs_adv_derot sbs_adv_prederot
+.PHONY: all install-bin clean
 
 INCLUDES = "/usr/local/Cellar/opencv/4.8.0_7/include/opencv4"
-default: all
+BINARIES := radii derot prederot adv_prederot adv_derot sbs_derot sbs_prederot sbs_adv_derot sbs_adv_prederot
 
-all: radii derot prederot adv_prederot adv_derot sbs_derot sbs_prederot sbs_adv_derot sbs_adv_prederot
-radii:
-	g++ -O3 -I${INCLUDES} -std=c++17 radii_check.cpp -o $@ `pkg-config --libs opencv4`
+all: $(BINARIES)
 
-derot:
-	g++ -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
+radii: radii_check.cpp
+	$(CXX) -O3 -I${INCLUDES} -std=c++17 radii_check.cpp `pkg-config --libs opencv4` -o $@
 
-prederot:
-	g++ -DPRE -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
+%::derot.cpp
+	$(CXX) $(if $(findstring sbs_, $@), -DSIDE_BY_SIDE) \
+	-D$(if $(findstring adv_, $@),ADV_)$(if $(findstring pre, $@),PRE,DEROT) \
+	-O3 -I${INCLUDES} -std=c++17 derot.cpp `pkg-config --libs opencv4` \
+	-o $@
 
-adv_derot:
-	g++ -DADV_DEROT -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
-
-adv_prederot:
-	g++ -DADV_PRE -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
-
-sbs_derot:
-	g++ -O3 -DSIDE_BY_SIDE -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
-
-sbs_prederot:
-	g++ -DPRE -DSIDE_BY_SIDE -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
-
-sbs_adv_derot:
-	g++ -DADV_DEROT -DSIDE_BY_SIDE -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
-
-sbs_adv_prederot:
-	g++ -DADV_PRE -DSIDE_BY_SIDE -O3 -I${INCLUDES} -std=c++17 new_derot.cpp -o $@ `pkg-config --libs opencv4`
-
-install-bin: radii derot prederot
+install-bin: all
 	mkdir -p $(ROOT_DIR)/$(site)/bin
-	cp radii_check $(ROOT_DIR)/$(site)/bin/radii_check
-	cp derot $(ROOT_DIR)/$(site)/bin/derot
-	cp prederot $(ROOT_DIR)/$(site)/bin/prederot
-	cp adv_prederot $(ROOT_DIR)/$(site)/bin/adv_prederot
+	for b in $(BINARIES); do cp $$b $(ROOT_DIR)/$(site)/bin/$$b; done
 
-test: adv_derot
-	rm -f out.mp4
-	( date && time ./adv_derot ../example_irl.mp4 462 260 250 13.3 1 out.mp4 1 0,170 0 0) 2>&1 | tee -a runtimes
-
+clean:
+	rm -f $(BINARIES)
