@@ -3,10 +3,6 @@
 #define MAX_VIDEO_FRAME_AREA (3480*2160)
 #define MIN_VIDEO_FRAME_AREA (400*300)
 
-// there are 2**3 binaries generated, for each combo of these bools:
-// SIDE_BY_SIDE, PREVIEW, ADVANCED
-// only the first macro is explicitly defined; the four combos of the latter
-// two each have their own macro name
 #if defined(PRE) || defined(ADV_PRE)
     #define PREVIEW 1
 #endif 
@@ -44,9 +40,10 @@
     4     R:double
     5     RPM:double
     6     FILENAME:str
-    7  [[ ADV_AUTO:'0'/'1'
-    8     ADV_DATA:str ]
-    9     ADV_CSV:'0'/'1'
+    7  [  ADV_AUTO:'0'/'1'
+    8     ADV_DATA:str
+    9     ADV_FORCE:'0'/'1'
+    10  [ ADV_CSV:'0'/'1' ]
        ]
 */
 
@@ -80,8 +77,9 @@ int main(int argc, const char* argv[]) {
         return -2;
     const cv::Size kWorkingFrameSize = working_frame.size();
 
-    // never try to derotate a huge video
-    if (kWorkingFrameSize.area() >= MAX_VIDEO_FRAME_AREA)
+    // don't try to derotate anormally sized videos
+    if (kWorkingFrameSize.area() >= MAX_VIDEO_FRAME_AREA ||
+        kWorkingFrameSize.area() <= MIN_VIDEO_FRAME_AREA)
         return -3;
 
     // already read the first frame
@@ -97,6 +95,7 @@ int main(int argc, const char* argv[]) {
                           kRotCenter.y + kRotRadius)));
 
     // this function returns a different struct with extra data if SIDE_BY_SIDE is defined
+    //__builtin_debugtrap();
     auto layout = makeLayout(kWorkingFrameROI.size(), kRPM);
 
 #if defined(SIDE_BY_SIDE)
@@ -245,7 +244,7 @@ int main(int argc, const char* argv[]) {
                         adv_pth.points[i].history.size(); j++) {
                     cv::circle(working_frame,
                                adv_pth.points[i].history[j]+kRotCenter,
-                               1,
+                               adv_pth.point_size,
                                adv_pth.points[i].color,
                                -1);
                 }

@@ -20,6 +20,7 @@ typedef struct {
     std::vector<SinglePointHistory> points;
     std::vector<float> t;
     bool valid;
+    int point_size;
 } PointsHistory;
 
 std::vector<std::string> deserialize(std::string in) {
@@ -61,12 +62,17 @@ PointsHistory auto_getpoints(std::string filename, std::string input,
     cv::bitwise_and(frame_gray, 0, frame_gray, center_mask);
 
     std::vector<cv::Point2f> output_points;
-    cv::goodFeaturesToTrack(frame_gray, output_points, 100, 0.1, 
+    // TODO: looks like 4k video is having trouble detecing points..
+    // this also might just be a upscaled video problem. Will ignore for now
+    // something interesting may be to only smooth closer to the boundry,
+    // so that cornering is less likely to pick things on the boundry
+    cv::goodFeaturesToTrack(frame_gray, output_points, 70, 0.1, 
                             7, cv::noArray(), 7);
 
     PointsHistory ret = {
         .points = std::vector<SinglePointHistory>(output_points.size()),
-        .valid = true
+        .valid = true,
+        .point_size = 1 + static_cast<int>(std::sqrt(dims.area()) / 1000),
     };
 
     for (int i = 0; i < output_points.size(); i++) {
@@ -82,6 +88,10 @@ PointsHistory auto_getpoints(std::string filename, std::string input,
 PointsHistory manual_getpoints(std::string filename, std::string input,
                                cv::Point2f center) {
     auto randColor = [] { return 128+(rand() % static_cast<int>(128)); };
+    auto vid = cv::VideoCapture(filename);
+
+    auto dims = cv::Size(vid.get(cv::CAP_PROP_FRAME_WIDTH),
+                         vid.get(cv::CAP_PROP_FRAME_HEIGHT));
 
     auto separated_input = deserialize(input);
     if (separated_input.size() % 2 != 0) {
@@ -90,7 +100,8 @@ PointsHistory manual_getpoints(std::string filename, std::string input,
 
     PointsHistory ret = {
         .points = std::vector<SinglePointHistory>(separated_input.size() / 2),
-        .valid = true
+        .valid = true,
+        .point_size = 1 + static_cast<int>(std::sqrt(dims.area()) / 1000),
     };
 
     for (int i = 0; i < separated_input.size(); i += 2) {

@@ -447,7 +447,7 @@ const submitAdvPreview = () => {
     r.append('rpm', $('#rpm')[0].value)
     r.append('sbs', $('#sideBS')[0].checked)
     r.append('adv', isAdvanced())
-    r.append('advData', isAdvanced() == 'manual' ? s.points.toString() : s.r_a)
+    r.append('advData', isAdvanced() == 'manual' ? s.points.toString() : (s.r_a ?? 0)+','+s.r)
     r.append('visForce', $('#visForce')[0].checked)
     $.ajax('/advpreview/', {
         method: 'POST', data: r, dataType: 'text', contentType: false, processData: false,
@@ -461,6 +461,7 @@ const submitAdvPreview = () => {
         },
         success: (d) => {
             saveState(d.split('\n')[0])
+            isAdvanced() == 'manual' ? setState('points', s.points) : setState('r_a', s.r_a ?? 0)
             setVideo(getState().src)
             showEl('#videoIn', '#st20', '#st23')
             hideEl('#previewPic')
@@ -497,7 +498,8 @@ const submitRot = () => {
         endpoint = "/advderot/"
         r.append('adv', isAdvanced())
         r.append('advData', isAdvanced() == 'manual' ? 
-            status.points.toString() : status.r_a)
+            status.points.toString() :
+                (status.r_a ?? 0)+','+status.r)
         r.append('visForce', $('#visForce')[0].checked)
         r.append('exportCSV', $('#exportCSV')[0].checked)
     }
@@ -641,14 +643,6 @@ $(window).on('load', () => {
     })
 
     $( '#derotBut' ).on('click', () =>  submitRot() )
-    // simple tooltip
-    $( '#sideBS' ).on('click', () => {
-        if ($('#sideBS')[0].checked) {
-            showEl('#SBShelp')
-        } else {
-            hideEl('#SBShelp')
-        }
-    })
     // change advanced dropdown text and class
     $( '#advancedBut' ).on('click', () => {
         $('#advancedCard').toggleClass('card card-body');

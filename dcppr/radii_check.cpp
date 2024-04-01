@@ -49,8 +49,12 @@ int main(int argc, const char* argv[]) {
     if (circles.size() < 1)
         return(-3);
 
+    int x = circles[0][0];
+    int y = circles[0][1];
+    int r = circles[0][2];
+
     // print first circle: x, y, r
-    std::cout << (int)circles[0][0] << " " << (int)circles[0][1] << " " << (int)circles[0][2];
+    std::cout << x << " " << y << " " << r;
 
     // close video, exit
     in_vidcap.release();

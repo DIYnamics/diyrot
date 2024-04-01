@@ -66,8 +66,8 @@ def save():
         v.close()
         # detect circle and generate preview
         x,y,r = opencv_detect(vpath)
-        preview_fn = opencv_preview(vname, x, y, r, request.form['sbs'],
-                                    request.form['rpm'])
+        preview_fn = opencv_preview(vname, x, y, r, float(request.form['rpm']),
+                                    request.form['sbs'] == 'true')
     except Exception as e:
         # stdout is connected to syslog and viewable thru monitoring
         print(' '.join(['error in upload', str(request.form), str(e)]),
@@ -170,12 +170,10 @@ def update_count():
     is hit. Can lose count on concurrent accesses
     '''
     c = 0
-    try:
-        with open('count', 'w+') as f:
-            c = int(f.read())
-            f.write(str(c+1))
-    except:
-        pass
+    with open('count', 'r+') as f:
+        c = int(f.read()) + 1
+        f.seek(0)
+        f.write(str(c))
     return (str(c), 200)
 
 def opencv_detect(vidfn):
@@ -190,13 +188,13 @@ def opencv_preview(vidfn, x, y, r, rpm, sbs,
     out_fn = os.path.splitext(vidfn)[0] + ('-advpre' if adv else '-pre')
     extn = '.mp4'
 
-    prog_name = ''.join('sbs_' if sbs else '', 'adv_' if adv else '', 'prederot')
+    prog_name = ''.join(['sbs_' if sbs else '', 'adv_' if adv else '', 'prederot'])
     cmd = [os.path.join(_root_dir, 'bin', prog_name),
            os.path.join(_root_dir, 'uploads', vidfn),
            str(x), str(y), str(r), str(rpm),
            os.path.join(_root_dir, 'return', out_fn+extn)]
     if adv:
-        cmd += ['1' if adv == 'auto' else '0', adv_data, '1' if visForce else '0']
+        cmd += ['1' if adv == 'auto' else '0', advData, '1' if visForce else '0']
     # waits for return; assuming this is a quick job
     subprocess.check_call(cmd)
 
@@ -216,13 +214,13 @@ def opencv_derot(vidfn, x, y, r, rpm, sbs,
         out_fn += "_tracking"
 
     # run regular job
-    prog_name = ''.join('sbs_' if sbs else '', 'adv_' if adv else '', 'derot')
+    prog_name = ''.join(['sbs_' if sbs else '', 'adv_' if adv else '', 'derot'])
     cmd = [os.path.join(_root_dir, 'bin', prog_name),
            os.path.join(_root_dir, 'uploads', vidfn),
            str(x), str(y), str(r), str(rpm),
            os.path.join(_root_dir, 'return', out_fn+extn)]
     if adv:
-        cmd += ['1' if adv == 'auto' else '0', adv_data,
+        cmd += ['1' if adv == 'auto' else '0', advData,
                 '1' if visForce else '0', '1' if exportCSV else '0']
 
     subprocess.Popen(cmd)
