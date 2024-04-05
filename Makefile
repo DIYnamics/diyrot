@@ -1,38 +1,12 @@
-ROOT_DIR = $(if DEV,$(CURDIR),/srv/)
-site = $(if DEV,,dpr-dev.epss.ucla.edu)
-export ROOT_DIR
-export site
+ROOT_DIR ?= $(CURDIR)
+site ?=
 
-default: $(if DEV, dev, status)
+default:
 
 dev:
 	rm -fdr $(ROOT_DIR)/$(site)/return $(ROOT_DIR)/$(site)/uploads
 	mkdir -p -m 777 $(ROOT_DIR)/$(site)/return
 	mkdir -p -m 777 $(ROOT_DIR)/$(site)/uploads
-	make -C dcppr/ install-bin
+	make DEV=1 INCLUDES="/usr/local/Cellar/opencv/4.8.0_7/include/opencv4" -C dcppr clean
+	make DEV=1 INCLUDES="/usr/local/Cellar/opencv/4.8.0_7/include/opencv4" -C dcppr install
 	cd proc && python3 app.py
-
-status:
-	systemctl status netdpr.service
-	systemctl status nginx.service
-
-nginx-log:
-	tail /var/log/nginx/error.log -n 20
-
-uwsgi-log:
-	journalctl _SYSTEMD_UNIT=netdpr.service | tail -n 20
-
-install:
-	mkdir -p $(ROOT_DIR)/$(site)/return -m 777
-	mkdir -p $(ROOT_DIR)/$(site)/uploads -m 777
-	make -C static/ install-static
-	make -C dcppr/ install-bin
-	make -C proc/ install-proc
-	make -C nginx/ install-nginx
-
-uninstall:
-	systemctl stop nginx.service
-	systemctl stop netdpr.service
-	rm -fdr $(ROOT_DIR)/$(site)/
-
-reinstall: uninstall install

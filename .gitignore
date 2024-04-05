@@ -1,3 +1,5 @@
+*.session
+**/*.dSYM
 **/.DS_Store
 **/*.jpeg
 **/*.pyc

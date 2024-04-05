@@ -1,9 +1,0 @@
-[Unit]
-Description=netdpr uwsgi
-After=network.target
-
-[Service]
-User=alch
-Group=www-data
-WorkingDirectory=/home/alch/NetDPR/proc
-ExecStart=uwsgi --ini uwsgi.ini

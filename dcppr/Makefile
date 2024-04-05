@@ -8,8 +8,12 @@
 DEROT_BINARIES = derot prederot adv_prederot adv_derot sbs_derot sbs_prederot sbs_adv_derot sbs_adv_prederot
 BINARIES = radii_check $(DEROT_BINARIES)
 
+ROOT_DIR ?= $(CURDIR)/..
+site ?=
+INSTALL_DIR=$(ROOT_DIR)/$(site)/bin/
+
 O = $(if DEV,-g,-O3)
-INCLUDES = "/usr/local/Cellar/opencv/4.8.0_7/include/opencv4"
+INCLUDES ?= "/usr/include/opencv4"
 
 all: $(BINARIES)
 
@@ -22,9 +26,9 @@ $(DEROT_BINARIES): derot.cpp
 	$(O) -I${INCLUDES} -std=c++17 derot.cpp `pkg-config --libs opencv4` \
 	-o $@
 
-install-bin: all
-	mkdir -p $(ROOT_DIR)/$(site)/bin
-	for b in $(BINARIES); do cp $$b $(ROOT_DIR)/$(site)/bin/$$b; done
+install: all
+	if [ -d "$(INSTALL_DIR)" ]; then for b in $(BINARIES); do cp $$b $(INSTALL_DIR)/$$b; done; fi
 
 clean:
 	rm -f $(BINARIES)
+	if [ -d "$(INSTALL_DIR)" ]; then for b in $(BINARIES); do rm -f $(ROOT_DIR)/$(site)/bin/$$b; done; fi
