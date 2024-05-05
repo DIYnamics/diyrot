@@ -1,11 +1,14 @@
-#include <array>
-#include <deque>
-#include <iostream>
-#include <unordered_map>
-#include <opencv2/opencv.hpp>
-
 #ifndef _ADV_ARGUTILS_H_
 #define _ADV_ARGUTILS_H_
+
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/types.hpp>
+#include <opencv2/core/base.hpp>
+#include <opencv2/core/core.hpp>
+#include <vector>
+#include <unordered_map>
+
 #define WINDOW 30
 
 typedef struct {
@@ -122,6 +125,67 @@ PointsHistory adv_getpoints(std::string filename, cv::Point2f center,
     return is_auto ? 
         auto_getpoints(filename, adv_data, center) :
         manual_getpoints(filename, adv_data, center);
+}
+
+// gradient and polynomial methods
+
+std::vector<double> gradient(std::vector<double> y, std::vector<double> x) {
+    // numpy.gradient uses first order difference at boundaries and second
+    // order central difference. assume x stepsize is constant (evenly spaced)
+    std::vector<double> out(y.size());
+    if (x.size() != y.size())
+        return out;
+    double h = x[1] - x[0];
+    out[0] = (y[1] - y[0]) / h;
+    int i = 1;
+    while (i < out.size() - 1) {
+        out[i] = 0.5 * (y[i+1] - y[i-1]) / h;
+        i++;
+    }
+    out[i] = (y[i] - y[i-1]) / h;
+    return out;
+}
+
+std::vector<double> polyfit(std::vector<double> x, std::vector<double> y, int k) {
+    // x, y are n-by-1 vectors
+    // construct the X matrix, so that
+    // 1 x1 x1^2 .. x1^k
+    // ..
+    // 1 xn xn^2 .. xn^k is a n by (k+1) matrix,
+    // a is a (k+1) by 1 vector, and y is a n by 1 vector,
+    // and Xa = y is the equation to solve. feed into cv::solve with the normal flag,
+    // so X^T X a = X^T y is what is actually solved. use SVD with is O(n^3)
+    int n = x.size();
+    std::vector<double> a_vec;
+    if (y.size() != n || k > n)
+        return a_vec;
+
+    cv::Mat_<double> X(n, k+1, 1.0);
+    for (size_t r = 0; r < n; r++) {
+        double x_r = x[r];
+        double x_cur = x_r;
+        double* Xi = X.ptr<double>(r);
+        for (size_t c = 1; c < X.cols; c++) {
+            Xi[c] = x_cur;
+            x_cur *= x_r;
+        }
+    }
+    cv::Mat_<double> y_mat(y);
+    cv::Mat_<double> a;
+    cv::solve(X, y_mat, a, cv::DECOMP_SVD && cv::DECOMP_NORMAL);
+
+    a_vec.assign(a.begin(), a.end());
+    return a_vec;
+}
+
+double polyval(std::vector<double> a, double x) {
+    double out = 0;
+    double x_cur = 1;
+    for (auto a_i : a) {
+        out += a_i * x_cur;
+        x_cur *= x;
+    }
+    return out;
 }
 
 #endif
