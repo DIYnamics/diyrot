@@ -13,11 +13,37 @@
 
 typedef struct {
     std::vector<cv::Point2f> history;
-    std::vector<float> r;
-    std::vector<float> theta;
     bool valid;
     cv::Scalar color;
 } SinglePointHistory;
+
+/* derivables from SinglePointHistory for recording:
+r = cv::norm(point_in_rotframe);
+theta = std::atan2(point_in_rotframe.y, point_in_rotframe.x);
+-- gradient funcs are most efficient when entire history is passed,
+-- but we need the central gradient as soon as its available for drawing the frame at the time
+dx = gradient(history.x, t)
+dy = gradient(history.y, t)
+dr = gradient(r, t)
+dtheta = gradient(theta, t)
+velocity = cv::norm(dx, dy) -- one norm per point
+
+things that need to be drawn:
+-- major issue: ployfit/gradient requires datapoints from future frames, processing loop does not support
+velocity -- line from (x, y) to (x, y) + velocity
+other line --
+totOmega = RPM * 2pi / 60 // angular rotation velocity rad/s
+rinert = velocity / totOmega // m/s / rad/s => m / rad
+rinertsmooth = polyval(polyfit(rinert, t, 20)): in digipyro, this is a 20-degree fit across the entire video! cannot work for all video sizes. maybe do a 3-degree fit on 20 surrounding data points
+    note that the polyfit requires looking at datapoints in a window
+dxsmooth = polyval(polyfit(dx, t, *
+dysmooth = polyval(polyfit(dy, t, *
+
+draw the velocity line from the tracked xy point to tracked_x+dxsmooth, tracked_y+dysmooth
+angle = np.arctan2(dySmooth,dxSmooth) // rad
+draw a line from the tracked xy point to tracked_x+(rad*np.sin(angle))), tracked_y-(rad*np.cos(angle)) // this is just the line showing dx, dy smoothed, (?) in the rotating frame
+                                                                                                       // you should run the original digipyro code to figure out what exactly this line is supposed to be
+*/
 
 typedef struct {
     std::vector<SinglePointHistory> points;

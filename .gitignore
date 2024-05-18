@@ -11,3 +11,5 @@ test_root/*
 test_dir/*
 bin/*
 count
+compile_commands.json
+.cache/*

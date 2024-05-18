@@ -13,7 +13,7 @@
 #define ATTR_VID_HEIGHT 800.0 // declare float to avoid int division
 #define TEXT_SLOPE ((ATTR_TEXT_HEIGHT - TEXT_BASE_HEIGHT) / ATTR_VID_HEIGHT)
 
-const std::string kAttrString = 
+const std::string kAttrString =
 #if defined(PREVIEW)
     "PREVIEW VIDEO. Proceed for full processing.";
 #else
@@ -144,4 +144,3 @@ LayoutInfo makeLayout(cv::Size roi, double rpm) {
 }
 
 #endif
-

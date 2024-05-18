@@ -18,22 +18,22 @@
     #define ARGC_COUNT 11
 #endif
 
-#include "adv_argutils.hpp"
+#include "adv_utils.hpp"
 #include "layoututils.hpp"
-#include <array>
-#include <string>
-#include <sstream>
 #include <cstdio>
+#include <cmath>
 #include <errno.h>
 #include <opencv2/core/types.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/video/tracking.hpp>
+#include <string>
+#include <sstream>
 #include <vector>
 
 /*
     Argument API:
-    0 ./bin 
+    0 ./bin
     1     FILENAME:str
     2     X:double
     3     Y:double
@@ -85,17 +85,15 @@ int main(int argc, const char* argv[]) {
     // already read the first frame
     int n_frame = 1;
     const double kdTheta = -6.0 * kRPM / kInVidFPS;
-    
+
     const cv::Rect kWorkingFrameROI = cv::Rect(
         cv::Point(std::max(static_cast<double>(0), kRotCenter.x - kRotRadius),
                   std::max(static_cast<double>(0), kRotCenter.y - kRotRadius)),
-        cv::Point(std::min(static_cast<double>(kWorkingFrameSize.width), 
+        cv::Point(std::min(static_cast<double>(kWorkingFrameSize.width),
                           kRotCenter.x + kRotRadius),
                   std::min(static_cast<double>(kWorkingFrameSize.height),
                           kRotCenter.y + kRotRadius)));
 
-    // this function returns a different struct with extra data if SIDE_BY_SIDE is defined
-    //__builtin_debugtrap();
     auto layout = makeLayout(kWorkingFrameROI.size(), kRPM);
 
 #if defined(SIDE_BY_SIDE)
@@ -117,7 +115,7 @@ int main(int argc, const char* argv[]) {
     cv::imwrite(kOutputFn + ".jpeg", working_frame);
 #endif
     // skip in-between frames to roughly reduce output frames per second to 10
-    const int kFramesToSkip = std::max(kInVidFPS / 10, 1.0);
+    const int kFramesToSkip = std::max(kInVidFPS / 10.0, 1.0);
     // read 10 sec * 10 fps or half the amount of existing frames
     const int kOutputFramesLimit = std::min(100 * kFramesToSkip,
                                             kInVidFrameCount);
@@ -130,7 +128,7 @@ int main(int argc, const char* argv[]) {
     out_fps = kInVidFPS;
 #endif
 
-    auto output_vidwriter = cv::VideoWriter(write_fn, CODEC, 
+    auto output_vidwriter = cv::VideoWriter(write_fn, CODEC,
                                             out_fps, layout.outputFrameSize);
     if (!output_vidwriter.isOpened())
         return -4;
@@ -151,7 +149,7 @@ int main(int argc, const char* argv[]) {
     kAttrTextMat.copyTo(output_frame(kAttrTextROI));
 
 #if defined(ADVANCED)
-    PointsHistory adv_pth = 
+    PointsHistory adv_pth =
         adv_getpoints(kInputFn, kRotCenter, kAdvAuto, kAdvData);
     if (!adv_pth.valid)
         return(-5);
@@ -181,12 +179,12 @@ int main(int argc, const char* argv[]) {
         working_frame(kWorkingFrameROI).copyTo(output_frame(kOutOrigFrameROI));
 #endif
         cv::bitwise_and(working_frame, 0, working_frame, rot_mask);
-        cv::warpAffine(working_frame, working_frame, 
-                       cv::getRotationMatrix2D(kRotCenter, 
+        cv::warpAffine(working_frame, working_frame,
+                       cv::getRotationMatrix2D(kRotCenter,
                                                n_frame * kdTheta,
                                                1.0),
                        kWorkingFrameSize);
-#if defined(ADVANCED)
+#if defined(ADVANCED) // all adv need frame-by-frame tracking
         adv_pth.t.push_back(adv_pth.t.size() / kInVidFPS);
         if (adv_pth.valid) {
             cv::cvtColor(working_frame, adv_frame_gray, cv::COLOR_BGR2GRAY);
@@ -229,18 +227,18 @@ int main(int argc, const char* argv[]) {
                 cur_pth_point.history.push_back(
                     adv_lkpyr_points[i] - kRotCenter);
 
-                // TODO: all the physics history recording, only if not in preview
-                //cur_pth_point.r.push_back(std::sqrt(std::pow(adv_lkpyr_points[j].x, 2), 
-                //                                    std::pow(adv_lkpyr_points[j].y, 2)));
-                
+                //cur_pth_point.r.push_back(cv::norm(cur_point_in_rotframe));
+                //cur_pth_point.theta.push_back(std::atan2(cur_point_in_rotframe.y,
+                //                                         cur_point_in_rotframe.x));
+
                 adv_lkpyr_points_old.push_back(adv_lkpyr_points[i]);
                 adv_pth.valid = true;
             }
-                
+
             int starting_idx = std::max(0, (int)adv_pth.t.size() - WINDOW);
-            for (int i = 0; i < 
+            for (int i = 0; i <
                     adv_lkpyr_points.size()-adv_points_demoted; i++) {
-                for (int j = starting_idx; j < 
+                for (int j = starting_idx; j <
                         adv_pth.points[i].history.size(); j++) {
                     cv::circle(working_frame,
                                adv_pth.points[i].history[j]+kRotCenter,
