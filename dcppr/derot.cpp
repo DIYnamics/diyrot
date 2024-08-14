@@ -2,20 +2,23 @@
 
 #define MAX_VIDEO_FRAME_AREA (3480*2160)
 #define MIN_VIDEO_FRAME_AREA (400*300)
+// # of trailing points that get drawn, as well as half the size of the radius
+// visualization window
+#define K_TRAILING_POINTS (15)
 
 #if defined(PRE) || defined(ADV_PRE)
-    #define PREVIEW 1
-#endif 
+#define PREVIEW 1
+#endif
 #if defined(ADV_DEROT) || defined(ADV_PRE)
-    #define ADVANCED 1
-#endif 
+#define ADVANCED 1
+#endif
 
 #if !defined(ADVANCED)
-    #define ARGC_COUNT 7
+#define ARGC_COUNT 7
 #elif defined(ADV_PRE)
-    #define ARGC_COUNT 10
+#define ARGC_COUNT 10
 #elif defined(ADV_DEROT)
-    #define ARGC_COUNT 11
+#define ARGC_COUNT 11
 #endif
 
 #include "adv_utils.hpp"
@@ -23,10 +26,12 @@
 #include <cstdio>
 #include <cmath>
 #include <errno.h>
+#include <list>
 #include <opencv2/core/types.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/video/tracking.hpp>
+#include <queue>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -42,7 +47,7 @@
     6     FILENAME:str
     7  [  ADV_AUTO:'0'/'1'
     8     ADV_DATA:str
-    9     ADV_FORCE:'0'/'1'
+    9     ADV_VIS:'0'/'1'
     10  [ ADV_CSV:'0'/'1' ]
        ]
 */
@@ -51,7 +56,7 @@ int main(int argc, const char* argv[]) {
     if (argc != ARGC_COUNT)
         return -1;
     const std::string kInputFn = std::string(argv[1]);
-    const auto kRotCenter = 
+    const auto kRotCenter =
         cv::Point2f(strtod(argv[2], NULL), strtod(argv[3], NULL));
     const double kRotRadius = strtod(argv[4], NULL);
     const double kRPM = strtod(argv[5], NULL);
@@ -59,11 +64,14 @@ int main(int argc, const char* argv[]) {
 #if defined(ADVANCED)
     const bool kAdvAuto = std::string(argv[7]) == "1";
     const std::string kAdvData = std::string(argv[8]);
-    const bool kVisForce = std::string(argv[9]) == "1";
+    // don't split kVisRadius out as macro enabled as its hard
+    const bool kVisRadius = std::string(argv[9]) == "1";
+    const int kOutputQueueSize = kVisRadius ? K_TRAILING_POINTS : 1;
 #if defined(ADV_DEROT)
+    // TODO: don't allocate the extra data vector if not exporting or visualize
     const bool kExportCsv = std::string(argv[10]) == "1";
 #endif
-#endif 
+#endif
 
     if (!kRPM || errno == ERANGE)
         return -1; // something happened with input processing
@@ -90,9 +98,9 @@ int main(int argc, const char* argv[]) {
         cv::Point(std::max(static_cast<double>(0), kRotCenter.x - kRotRadius),
                   std::max(static_cast<double>(0), kRotCenter.y - kRotRadius)),
         cv::Point(std::min(static_cast<double>(kWorkingFrameSize.width),
-                          kRotCenter.x + kRotRadius),
+                           kRotCenter.x + kRotRadius),
                   std::min(static_cast<double>(kWorkingFrameSize.height),
-                          kRotCenter.y + kRotRadius)));
+                           kRotCenter.y + kRotRadius)));
 
     auto layout = makeLayout(kWorkingFrameROI.size(), kRPM);
 
@@ -110,10 +118,6 @@ int main(int argc, const char* argv[]) {
     std::string write_fn = kOutputFn;
     double out_fps;
 #if defined(PREVIEW)
-#if !defined(ADVANCED)
-    // write a jpeg of the first frame for frontend use
-    cv::imwrite(kOutputFn + ".jpeg", working_frame);
-#endif
     // skip in-between frames to roughly reduce output frames per second to 10
     const int kFramesToSkip = std::max(kInVidFPS / 10.0, 1.0);
     // read 10 sec * 10 fps or half the amount of existing frames
@@ -138,7 +142,7 @@ int main(int argc, const char* argv[]) {
     cv::circle(rot_mask, kRotCenter, kRotRadius, 255, -1);
     cv::bitwise_not(rot_mask, rot_mask);
 
-    // draw text in designated, not overwritten areas
+    // draw text a single time in areas that won't be overwritten
     const auto kInfoTextMat =
         drawString(makeInfoString(kRPM), layout.quotient, output_frame.type());
     const auto kAttrTextMat =
@@ -147,12 +151,25 @@ int main(int argc, const char* argv[]) {
     const auto kAttrTextROI = cv::Rect(layout.attrTextOrigin, kAttrTextMat.size());
     kInfoTextMat.copyTo(output_frame(kInfoTextROI));
     kAttrTextMat.copyTo(output_frame(kAttrTextROI));
+#if defined(SIDE_BY_SIDE)
+    const auto kOgLabelTextMat =
+        drawString(kSbsOrigLabel, layout.quotient, output_frame.type());
+    const auto kDerotLabelTextMat =
+        drawString(kSbsDerotLabel, layout.quotient, output_frame.type());
+    const auto kOgLabelTextROI = cv::Rect(layout.ogLabelOrigin, kOgLabelTextMat.size());
+    const auto kDerotLabelTextROI = cv::Rect(layout.derotLabelOrigin, kDerotLabelTextMat.size());
+#endif
 
 #if defined(ADVANCED)
+    std::queue<cv::Mat, std::list<cv::Mat>> output_frame_queue;
+    cv::Point2f kRotCenterInOutputFrame =
+        static_cast<cv::Point2f>(layout.derotFrameOrigin) + kRotCenter -
+        static_cast<cv::Point2f>(kWorkingFrameROI.tl());
+
     PointsHistory adv_pth =
         adv_getpoints(kInputFn, kRotCenter, kAdvAuto, kAdvData);
     if (!adv_pth.valid)
-        return(-5);
+        return -5;
     adv_pth.t.push_back(0); // frame 0 starts at time 0
     std::vector<unsigned char> adv_lkpyr_status;
     std::vector<float> adv_lkpyr_error;
@@ -164,7 +181,7 @@ int main(int argc, const char* argv[]) {
     std::vector<cv::Point2f> adv_lkpyr_points_old;
     for (int i = 0; i < adv_pth.points.size(); i++) {
         adv_lkpyr_points_old.push_back(adv_pth.points[i].history.back() +
-                                           kRotCenter);
+                                       kRotCenter);
     }
 
     cv::cvtColor(working_frame, adv_frame_gray_old, cv::COLOR_BGR2GRAY);
@@ -196,9 +213,8 @@ int main(int argc, const char* argv[]) {
                                      adv_lkpyr_error,
                                      cv::Size(15, 15), // window size
                                      2,
-                                     cv::TermCriteria(
-                                                      cv::TermCriteria::COUNT +
-                                                          cv::TermCriteria::EPS,
+                                     cv::TermCriteria(cv::TermCriteria::COUNT +
+                                                      cv::TermCriteria::EPS,
                                                       10,
                                                       0.03));
             adv_frame_gray_old = adv_frame_gray.clone();
@@ -213,33 +229,28 @@ int main(int argc, const char* argv[]) {
             adv_lkpyr_points_old.clear();
             for (int i = 0; i < adv_lkpyr_points.size(); i++) {
                 int cur_index = i - adv_points_demoted;
-                SinglePointHistory& cur_pth_point = adv_pth.points[cur_index];
+                SinglePointHistory &cur_pth_point = adv_pth.points[cur_index];
                 auto cur_point_in_rotframe = adv_lkpyr_points[i] - kRotCenter;
                 if (!adv_lkpyr_status[i] ||
                         cur_point_in_rotframe.dot(cur_point_in_rotframe) >=
-                            cv::pow(kRotRadius, 2)) {
+                        kRotRadius * kRotRadius) {
                     cur_pth_point.valid = false;
                     std::swap(adv_pth.points[cur_index],
                               adv_pth.points[adv_pth.points.size() - 1]);
                     adv_points_demoted++;
                     continue;
                 }
-                cur_pth_point.history.push_back(
-                    adv_lkpyr_points[i] - kRotCenter);
-
-                //cur_pth_point.r.push_back(cv::norm(cur_point_in_rotframe));
-                //cur_pth_point.theta.push_back(std::atan2(cur_point_in_rotframe.y,
-                //                                         cur_point_in_rotframe.x));
+                cur_pth_point.history.push_back(cur_point_in_rotframe);
 
                 adv_lkpyr_points_old.push_back(adv_lkpyr_points[i]);
                 adv_pth.valid = true;
             }
 
-            int starting_idx = std::max(0, (int)adv_pth.t.size() - WINDOW);
-            for (int i = 0; i <
-                    adv_lkpyr_points.size()-adv_points_demoted; i++) {
+            // TODO: dynamically adjust alpha / # of points drawn if to avoid noisy images
+            int starting_idx = std::max(0, (int)adv_pth.t.size() - K_TRAILING_POINTS);
+            for (int i = 0; i < adv_lkpyr_points.size()-adv_points_demoted; i++) {
                 for (int j = starting_idx; j <
-                        adv_pth.points[i].history.size(); j++) {
+                adv_pth.points[i].history.size(); j++) {
                     cv::circle(working_frame,
                                adv_pth.points[i].history[j]+kRotCenter,
                                adv_pth.point_size,
@@ -247,7 +258,31 @@ int main(int argc, const char* argv[]) {
                                -1);
                 }
             }
+            fill_extra_data(adv_pth);
         }
+#endif
+
+        working_frame(kWorkingFrameROI).copyTo(output_frame(kOutDerotFrameROI));
+#if defined (SIDE_BY_SIDE)
+        kOgLabelTextMat.copyTo(output_frame(kOgLabelTextROI));
+        kDerotLabelTextMat.copyTo(output_frame(kDerotLabelTextROI));
+#endif
+#if defined(ADVANCED)
+        if (n_frame < kOutputQueueSize) {
+            #if defined(PREVIEW)
+            if (n_frame % kFramesToSkip == 0) // only write some output frames
+            #endif
+            output_vidwriter << output_frame;
+            continue;
+        }
+        output_frame_queue.push(std::move(output_frame.clone()));
+        if (output_frame_queue.size() < kOutputQueueSize)
+            continue;
+        // common path: take the oldest item and fill in data that requires window
+        output_frame = std::move(output_frame_queue.front());
+        output_frame_queue.pop();
+        if (kVisRadius)
+            fill_draw_vis_res(adv_pth, output_frame, kOutputQueueSize-1, kRPM, kRotCenterInOutputFrame);
 #endif
 #if defined(PREVIEW)
         if (n_frame >= kOutputFramesLimit) // if we've met the frame limit, exit
@@ -255,14 +290,26 @@ int main(int argc, const char* argv[]) {
         if (n_frame % kFramesToSkip != 0) // if we're in one of the skipped frames, continue
             continue;
 #endif
-        working_frame(kWorkingFrameROI).copyTo(output_frame(kOutDerotFrameROI));
+
         output_vidwriter << output_frame;
     } while (n_frame++, in_vidcap.read(working_frame));
 
+#if defined(ADV_DEROT)
+    while(!output_frame_queue.empty()) { // rampdown
+        output_frame = std::move(output_frame_queue.front());
+        output_frame_queue.pop();
+        output_vidwriter << output_frame;
+    }
+#endif
+
     output_vidwriter.release();
-#if !defined(PREVIEW)
+
+#if defined(ADV_DEROT)
+    if (kExportCsv)
+        export_csv(kOutputFn + ".csv", adv_pth);
     rename(write_fn.c_str(), kOutputFn.c_str());
 #endif
+
 #if defined(ADVANCED)
     return adv_pth.valid ? EXIT_SUCCESS : 3; // no tracking points left
 #else

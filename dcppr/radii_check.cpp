@@ -5,13 +5,14 @@
 #include <opencv2/opencv.hpp>
 
 // tries to automatically detect a circle using hough transformations
-// ./radii_check FILE 
+// ./radii_check FILE_FULL_PATH PREVIEW_FULL_PATH
 int main(int argc, const char* argv[]) {
     // if no file argument, fail
-    if (argc < 2)
+    if (argc < 3)
         return(-1);
-    // extract filename from first argumnent
-    const char* filename = argv[1];
+    // extract filename and preview img fname
+    const auto filename = std::string(argv[1]);
+    const auto preview_img_fn = std::string(argv[2]);
     // open video
     auto in_vidcap = cv::VideoCapture(filename);
 
@@ -19,6 +20,9 @@ int main(int argc, const char* argv[]) {
     // extract video frame, or fail
     if (!in_vidcap.read(working_frame))
         return(-2);
+
+    // write a jpeg of the first frame for frontend use
+    cv::imwrite(preview_img_fn, working_frame);
 
     const cv::Size kWorkingFrameDims = working_frame.size();
 

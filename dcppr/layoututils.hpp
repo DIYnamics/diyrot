@@ -12,10 +12,13 @@
 #define ATTR_TEXT_HEIGHT 27.0
 #define ATTR_VID_HEIGHT 800.0 // declare float to avoid int division
 #define TEXT_SLOPE ((ATTR_TEXT_HEIGHT - TEXT_BASE_HEIGHT) / ATTR_VID_HEIGHT)
+#define COLOR_RED cv::Scalar(0, 0, 255, 200) // BGRA
+#define COLOR_WHITE cv::Scalar(255, 255, 255, 200)
+#define COLOR_BLUE cv::Scalar(255, 0, 0, 200)
 
 const std::string kAttrString =
 #if defined(PREVIEW)
-    "PREVIEW VIDEO. Proceed for full processing.";
+    "PREVIEW VIDEO. Proceed filling out form to fully process.";
 #else
     "Generated using diyrot.epss.ucla.edu"; // this is 640 22, or 1279 43
                                             // for a 1200x1200 video, scale 1 looks ok
@@ -29,7 +32,7 @@ typedef struct {
     double quotient;
     cv::Size outputFrameSize;
     cv::Point derotFrameOrigin;
-    cv::Point infoTextOrigin; 
+    cv::Point infoTextOrigin;
     cv::Point attrTextOrigin;
 #if defined(SIDE_BY_SIDE)
     cv::Point ogFrameOrigin;
@@ -38,6 +41,7 @@ typedef struct {
 #endif
 } LayoutInfo;
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 cv::Size getStringSize(std::string input, int* baseline_return = NULL) {
     int baseline = 0;
     cv::Size text_size = 
@@ -47,15 +51,15 @@ cv::Size getStringSize(std::string input, int* baseline_return = NULL) {
     return cv::Size(text_size.width, text_size.height + (2 * baseline));
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 cv::Mat drawString(std::string input, double q, int cv_mat_type) {
    const auto kColor =
 #if defined(PREVIEW)
-    cv::Scalar(0, 0, 255, 200); // BGRA
+    COLOR_RED;
 #else
-    cv::Scalar(255, 255, 255, 200);
+    COLOR_WHITE;
 #endif
     int baseline;
-    //__builtin_debugtrap();
     auto text_dims = getStringSize(input, &baseline);
     auto text_mat = cv::Mat(text_dims, cv_mat_type);
     cv::putText(text_mat, input, cv::Point(0, text_dims.height - baseline),
@@ -66,6 +70,7 @@ cv::Mat drawString(std::string input, double q, int cv_mat_type) {
     return text_matrix;
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 std::string makeInfoString(double rpm) {
     std::ostringstream rpm_string;
     rpm_string.precision(2);
@@ -74,6 +79,7 @@ std::string makeInfoString(double rpm) {
 }
 
 // returned double q is linear multiplier for drawn text dims
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 double getQuotient(double text_w, double text_h, double video_w, double video_h) {
     double frame_h = (video_h * TEXT_SLOPE) + TEXT_BASE_HEIGHT;
     double frame_w = text_w * frame_h / video_h;
@@ -81,6 +87,7 @@ double getQuotient(double text_w, double text_h, double video_w, double video_h)
                     std::min(frame_w, video_w) / text_w);
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 LayoutInfo makeLayout(cv::Size roi, double rpm) {
     // this layout tries to put attr, info at the same size on the same line,
     // left, right justified. If that doesn't work, info is on the top, then
@@ -94,17 +101,19 @@ LayoutInfo makeLayout(cv::Size roi, double rpm) {
     double q = getQuotient(text_w, text_h, 2 * roi.width, roi.height);
     int scaled_text_h = static_cast<int>(q * text_h);
     // TODO: the labels probably need to be scaled along with text using getQuotient
-    double og_label_orig_w = roi.width * 0.5 - (getStringSize(kSbsOrigLabel).width / 2);
-    double derot_label_orig_w = roi.width * 1.5 - (getStringSize(kSbsDerotLabel).width / 2);
+    //double og_label_orig_w = roi.width * 0.5 - (getStringSize(kSbsOrigLabel).width / 2);
+    //double derot_label_orig_w = roi.width * 1.5 - (getStringSize(kSbsDerotLabel).width / 2);
+    double og_label_orig_w = 0;
+    double derot_label_orig_w = 2 * roi.width - (q*getStringSize(kSbsDerotLabel).width);
     // quotient is ratio between frame and video
-    if (roi.width > 1000) { // TODO: adjust number
+    if (roi.width > 500) {
         // fill with one line left, right justified layout
         return LayoutInfo {
             q,                                              // quotient
             cv::Size(2 * roi.width, roi.height + scaled_text_h), // output_frame_size
             cv::Point(roi.width, scaled_text_h),                 // derot_frame_origin
             cv::Point(0, 0),                                // info_text_origin
-            cv::Point(info_size.width * q * 1.03, 0),       // attr_text_origin
+            cv::Point(2 * roi.width - attr_size.width * q, 0),       // attr_text_origin
             cv::Point(0, scaled_text_h),                         // og_frame_origin
             cv::Point(og_label_orig_w, scaled_text_h),           // og_label_origin
             cv::Point(derot_label_orig_w, scaled_text_h),        // derot_label_origin

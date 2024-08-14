@@ -1,6 +1,10 @@
 #ifndef _ADV_ARGUTILS_H_
 #define _ADV_ARGUTILS_H_
 
+#include "layoututils.hpp"
+
+#include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/types.hpp>
@@ -9,49 +13,87 @@
 #include <vector>
 #include <unordered_map>
 
-#define WINDOW 30
+typedef struct {
+    cv::Point2f dp;
+    double r;
+    double theta;
+    double velocity_norm;
+    double dr;
+    double dtheta;
+    cv::Point2f radiusVis;
+} ExtraHistoryData;
 
 typedef struct {
+    // TODO: this probably needs rule of five? what would
+    // swap do for something like this
     std::vector<cv::Point2f> history;
+    // extra is missing one data point at beginning and one at end;
+    // each i-1 in extra maps to i in history. do this because we can't
+    // do central difference on the first and last points.
+    std::vector<ExtraHistoryData> extra;
     bool valid;
     cv::Scalar color;
 } SinglePointHistory;
 
-/* derivables from SinglePointHistory for recording:
-r = cv::norm(point_in_rotframe);
-theta = std::atan2(point_in_rotframe.y, point_in_rotframe.x);
--- gradient funcs are most efficient when entire history is passed,
--- but we need the central gradient as soon as its available for drawing the frame at the time
-dx = gradient(history.x, t)
-dy = gradient(history.y, t)
-dr = gradient(r, t)
-dtheta = gradient(theta, t)
-velocity = cv::norm(dx, dy) -- one norm per point
-
-things that need to be drawn:
--- major issue: ployfit/gradient requires datapoints from future frames, processing loop does not support
-velocity -- line from (x, y) to (x, y) + velocity
-other line --
-totOmega = RPM * 2pi / 60 // angular rotation velocity rad/s
-rinert = velocity / totOmega // m/s / rad/s => m / rad
-rinertsmooth = polyval(polyfit(rinert, t, 20)): in digipyro, this is a 20-degree fit across the entire video! cannot work for all video sizes. maybe do a 3-degree fit on 20 surrounding data points
-    note that the polyfit requires looking at datapoints in a window
-dxsmooth = polyval(polyfit(dx, t, *
-dysmooth = polyval(polyfit(dy, t, *
-
-draw the velocity line from the tracked xy point to tracked_x+dxsmooth, tracked_y+dysmooth
-angle = np.arctan2(dySmooth,dxSmooth) // rad
-draw a line from the tracked xy point to tracked_x+(rad*np.sin(angle))), tracked_y-(rad*np.cos(angle)) // this is just the line showing dx, dy smoothed, (?) in the rotating frame
-                                                                                                       // you should run the original digipyro code to figure out what exactly this line is supposed to be
-*/
-
 typedef struct {
     std::vector<SinglePointHistory> points;
+    // TODO: no need to log t -- unused anywhere, and can be generated
+    // from frame outputs
     std::vector<float> t;
     bool valid;
     int point_size;
 } PointsHistory;
 
+/*
+ * move-only vector wrapper with no bounds checking. Inserts never fail and
+ * overwrite in a FIFO manner. Elements cannot be removed other by overwrite.
+ * TODO: use this class instead of std::queue for the output buffer
+ */
+template<typename T>
+class CircularBuffer {
+    CircularBuffer<T>(size_t s) : max_size(s), cur_start_idx(0) {};
+
+    size_t size() {
+        return store.size();
+    }
+
+    void insert(T&& e) {
+        if (store.size() == max_size) {
+            store[cur_start_idx] = std::move(e);
+            cur_start_idx = (++cur_start_idx) % store.size();
+        } else
+            store.push_back(std::move(e));
+    }
+
+    T& front() {
+        return store.at(cur_start_idx);
+    }
+
+    class iterator : public std::iterator<std::input_iterator_tag, T> {
+        size_t i = cur_start_idx;
+        explicit iterator(size_t _i = 0, size_t _end = 0) : i(_i) {};
+        iterator& operator++() {
+            if (++i > store.size())
+                i = 0;
+            return *this;
+        }
+        iterator operator++(int) {
+            iterator ret = *this; ++(*this); return ret;
+        }
+        bool operator==(iterator other) { return i == other.i; }
+        bool operator!=(iterator other) { return !(this == other); }
+        T& operator*() const { return store[i]; }
+    };
+
+    iterator begin() { return iterator(cur_start_idx); }
+    iterator end() { return iterator(cur_start_idx == 0 ? store.size() : cur_start_idx - 1); }
+  private:
+    size_t cur_start_idx;
+    size_t max_size;
+    std::vector<T> store;
+};
+
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 std::vector<std::string> deserialize(std::string in) {
     const char sep = ',';
     std::vector<std::string> r;
@@ -65,6 +107,7 @@ std::vector<std::string> deserialize(std::string in) {
     }
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 PointsHistory auto_getpoints(std::string filename, std::string input,
                              cv::Point2f center) {
     auto randColor = [] { return 128+(rand() % static_cast<int>(128)); };
@@ -91,11 +134,7 @@ PointsHistory auto_getpoints(std::string filename, std::string input,
     cv::bitwise_and(frame_gray, 0, frame_gray, center_mask);
 
     std::vector<cv::Point2f> output_points;
-    // TODO: looks like 4k video is having trouble detecing points..
-    // this also might just be a upscaled video problem. Will ignore for now
-    // something interesting may be to only smooth closer to the boundry,
-    // so that cornering is less likely to pick things on the boundry
-    cv::goodFeaturesToTrack(frame_gray, output_points, 70, 0.1, 
+    cv::goodFeaturesToTrack(frame_gray, output_points, 70, 0.1,
                             7, cv::noArray(), 7);
 
     PointsHistory ret = {
@@ -114,6 +153,7 @@ PointsHistory auto_getpoints(std::string filename, std::string input,
     return ret;
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 PointsHistory manual_getpoints(std::string filename, std::string input,
                                cv::Point2f center) {
     auto randColor = [] { return 128+(rand() % static_cast<int>(128)); };
@@ -145,17 +185,20 @@ PointsHistory manual_getpoints(std::string filename, std::string input,
     return ret;
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 PointsHistory adv_getpoints(std::string filename, cv::Point2f center,
                             bool is_auto, std::string adv_data) {
     srand(42); // always pick the same order of colors
-    return is_auto ? 
+    return is_auto ?
         auto_getpoints(filename, adv_data, center) :
         manual_getpoints(filename, adv_data, center);
 }
 
 // gradient and polynomial methods
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 std::vector<double> gradient(std::vector<double> y, std::vector<double> x) {
+    // TODO: eventually refactor this to use iterators of vectors, rather than copy vectors
     // numpy.gradient uses first order difference at boundaries and second
     // order central difference. assume x stepsize is constant (evenly spaced)
     std::vector<double> out(y.size());
@@ -172,6 +215,21 @@ std::vector<double> gradient(std::vector<double> y, std::vector<double> x) {
     return out;
 }
 
+// this is gradient, but maybe you should make it more obvious its an online gradient
+//NOLINTNEXTLINE(misc-definitions-in-headers)
+cv::Point2f gradient3p(std::vector<cv::Point2f> points, std::vector<double> t) {
+    std::vector<double> x;
+    std::vector<double> y;
+    for (auto i : points) {
+        x.push_back(i.x);
+        y.push_back(i.y);
+    }
+    x = gradient(x, t);
+    y = gradient(y, t);
+    return cv::Point2f(x[1], y[1]);
+}
+
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 std::vector<double> polyfit(std::vector<double> x, std::vector<double> y, int k) {
     // x, y are n-by-1 vectors
     // construct the X matrix, so that
@@ -204,6 +262,7 @@ std::vector<double> polyfit(std::vector<double> x, std::vector<double> y, int k)
     return a_vec;
 }
 
+//NOLINTNEXTLINE(misc-definitions-in-headers)
 double polyval(std::vector<double> a, double x) {
     double out = 0;
     double x_cur = 1;
@@ -212,6 +271,100 @@ double polyval(std::vector<double> a, double x) {
         x_cur *= x;
     }
     return out;
+}
+
+//NOLINTNEXTLINE(misc-definitions-in-headers)
+void fill_extra_data(PointsHistory& p) {
+    std::vector<double> t(p.t.rbegin(), p.t.rbegin() + 3);
+    for (auto& kph : p.points) {
+        ExtraHistoryData kpe;
+        if (kph.valid && kph.history.size() > 2) {
+            cv::Point2f& kph_2ndlast = *std::next(kph.history.rbegin() + 1);
+            // TODO: r seems to not be constant?
+            kpe.r = cv::norm(kph_2ndlast);
+            kpe.theta = std::atan2(kph_2ndlast.y, kph_2ndlast.x);
+            std::vector<cv::Point2f> points(kph.history.rbegin(),
+                                            kph.history.rbegin() + 3);
+            kpe.dp = gradient3p(points, t);
+            kpe.velocity_norm = cv::norm(kpe.dp);
+            std::vector<double> r;
+            std::vector<double> theta;
+            for (auto p : points) {
+                r.push_back(cv::norm(p));
+                theta.push_back(std::atan2(p.y, p.x));
+            }
+            // also gradient3p, but with vectors instead
+            kpe.dr = gradient(r, t)[1];
+            kpe.dtheta = gradient(theta, t)[1];
+        }
+        kph.extra.push_back(kpe);
+    }
+}
+
+//NOLINTNEXTLINE(misc-definitions-in-headers)
+void fill_draw_vis_res(PointsHistory& p, cv::Mat& frame, const int offset,
+                       const double kRPM, const cv::Point2f& kRotCenterOffset) {
+    const double totOmega = kRPM * 4 * M_PI / 60.0;
+    // assume data is at rbegin() + offset, and that 2*offset + 1 data are avail
+    for (SinglePointHistory& kph : p.points) {
+        if (!kph.valid) continue;
+        auto icp = std::next(kph.history.rbegin(), offset);
+        auto icpe = std::next(kph.extra.rbegin(), offset-1);
+        cv::arrowedLine(frame, *icp + kRotCenterOffset, *icp + icpe->dp + kRotCenterOffset, COLOR_BLUE);
+
+        std::vector<double> fit_v;
+        std::vector<double> fit_dx;
+        std::vector<double> fit_dy;
+        // TODO: for smoothing, t doesn't matter; make constexpr
+        std::vector<double> t;
+        double x = 3;
+        for (auto i = std::next(icpe, offset); i >= kph.extra.rbegin(); --i, ++x) {
+            fit_v.push_back(i->velocity_norm / totOmega);
+            fit_dx.push_back(i->dp.x);
+            fit_dy.push_back(i->dp.y);
+            t.push_back(x);
+        }
+        double mid = t[t.size() / 2];
+        double velnorm_smooth = polyval(polyfit(t, fit_v, 3), mid);
+        double x_smooth = polyval(polyfit(t, fit_dx, 3), mid);
+        double y_smooth = polyval(polyfit(t, fit_dy, 3), mid);
+        double angle = atan2(y_smooth, x_smooth);
+        icpe->radiusVis = *icp + cv::Point2f(-velnorm_smooth * std::sin(angle),
+                                             velnorm_smooth * std::cos(angle));
+        cv::line(frame, *icp + kRotCenterOffset, icpe->radiusVis + kRotCenterOffset, COLOR_WHITE);
+    }
+}
+
+//NOLINTNEXTLINE(misc-definitions-in-headers)
+void export_csv(std::string_view fname, PointsHistory& p) {
+    std::ofstream f(fname);
+    for (int i = 0; i < p.points.size(); i++) {
+        auto is = std::to_string(i);
+        f << is + "x," << is + "y," << is + "dx," << is + "dy,"
+          << is + "||velocity||," << is + "r," << is + "dr," << is + "theta,"
+          << is + "dtheta," << is + "radiusx," << is + "radiusy" << std::endl;
+    }
+
+    // non-locality iter to allow entire line to be fully written
+    for (int j = 0; j < p.t.size(); j++) {
+        for (int i = 0; i < p.points.size(); i++) {
+            if (p.points[i].history.size() < j) {
+                f << ",,,,,,,,,,,";
+            } else {
+                f << p.points[i].history[j].x << "," << p.points[i].history[j].y << ",";
+                if (j == 0 || p.points[i].extra.size() < j) {
+                    f << ",,,,,,,,,";
+                } else {
+                    // TODO: extra radius point is unitializaed for lots?
+                    auto& e = p.points[i].extra[j];
+                    f << e.dp.x << ',' << e.dp.y << ',' << e.velocity_norm << ','
+                      << e.r << ',' << e.dr << ',' << e.theta << ',' << e.dtheta
+                      << ',' << e.radiusVis.x << ',' << e.radiusVis.y << ',';
+                }
+            }
+            f << std::endl;
+        }
+    }
 }
 
 #endif
