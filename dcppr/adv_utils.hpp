@@ -336,7 +336,7 @@ void fill_draw_vis_res(PointsHistory& p, cv::Mat& frame, const int offset,
 }
 
 //NOLINTNEXTLINE(misc-definitions-in-headers)
-void export_csv(std::string_view fname, PointsHistory& p) {
+void export_csv(std::string fname, PointsHistory& p) {
     std::ofstream f(fname);
     for (int i = 0; i < p.points.size(); i++) {
         auto is = std::to_string(i);
