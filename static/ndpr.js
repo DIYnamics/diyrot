@@ -322,11 +322,12 @@ const deboldEl = (...a) => a.forEach(l => $(l)[0].style.fontWeight = 'normal')
 
 // revert to original video when click adjust
 const dropManual = () => {
+    resizePreview()
     showEl('#st20', '#previewPic')
     boldEl('#st21')
     deboldEl('#st2')
     hideEl('#advBut', '#derotBut', '#videoIn')
-    $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV' ).prop('disabled', false)
+    $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', false)
     $( '#previewBut' )[0].value = "Regenerate Preview"
     setInfo('Respecify RPM, or change the rotation circle. The auto-detected \
         rotation circle (if found) is drawn. <br> To specify the rotation circle \
@@ -360,6 +361,7 @@ const dropAdv = () => {
     const sf = canv.scale_factor
     drawCirc(getState().x / sf, getState().y / sf, getState().r / sf)
     canv.drawable = true
+    resizeAll()
 }
 
 // newSub = true => first submission
@@ -387,7 +389,7 @@ const submitPreview = (newSub) => {
         beforeSend: () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
-            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV' ).prop('disabled', true)
+            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', true)
             deboldEl('#st1', '#st2')
             hideEl('#st10', '#st20', '#previewBut')
             if(newSub)
@@ -400,7 +402,9 @@ const submitPreview = (newSub) => {
             showEl('#videoIn')
             hideEl('#previewPic')
             boldEl('#st2')
-            $('#previewPic')[0].src = getState().src + '.jpeg'
+            if (newSub) {
+                $('#previewPic')[0].src = getState().img
+            }
             setWarning('Here is a rough preview of the first ten seconds of derotated video. <br>' +
                 (isAdvanced() ? 
                     'If it looks correct, click \'Next step\' to move onto object tracking.' :
@@ -408,20 +412,27 @@ const submitPreview = (newSub) => {
                  to process the full video and get a download link.') + 
                 '<br> If the video looks wrong, click \'Adjust\' to respecify RPM and/or the center of derotation.')
             showEl(isAdvanced() ? '#advBut' : '#derotBut')
+            showEl('#previewBut')
         },
-        error: (d) => { 
-            saveState(d.responseText.split('\n')[0])
-            $('#previewPic')[0].src = getState().src + '.jpeg'
-            setDanger('Your video was uploaded to the server, but the server couldn\'t detect a \
-                           valid circle in the first frame of the video. <br> \
-                           Click \'Adjust\' to manually configure parameters, or pick a new file.')
-            showEl('#st10')
-            deboldEl('#st1')
-            boldEl('#st11')
+        error: (d) => {
+            if (newSub) {
+                saveState(d.responseText.split('\n')[0])
+                $('#previewPic')[0].src = getState().img
+                setDanger('Your video was uploaded to the server, but the server couldn\'t detect a \
+                               valid circle in the first frame of the video. <br> \
+                               Click \'Adjust\' to manually configure parameters, or pick a new file.')
+                showEl('#st10')
+                deboldEl('#st1')
+                boldEl('#st11')
+                showEl('#previewBut')
+            } else {
+                clearState()
+                let err = 'An error occured. ' + (JSON.parse(d.responseText.split('\n')[0]).err ?? '')
+                setDanger(err + ' - please refresh the page to try again.')
+            }
         },
         complete: () => {
             hideEl('progress')
-            showEl('#previewBut')
         },
         xhr: () => {
             var myXhr = new window.XMLHttpRequest() // drives progress bar
@@ -448,13 +459,13 @@ const submitAdvPreview = () => {
     r.append('sbs', $('#sideBS')[0].checked)
     r.append('adv', isAdvanced())
     r.append('advData', isAdvanced() == 'manual' ? s.points.toString() : (s.r_a ?? 0)+','+s.r)
-    r.append('visForce', $('#visForce')[0].checked)
+    r.append('visRadius', $('#visRadius')[0].checked)
     $.ajax('/advpreview/', {
         method: 'POST', data: r, dataType: 'text', contentType: false, processData: false,
         beforeSend: () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
-            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV' ).prop('disabled', true)
+            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', true)
             deboldEl('#st1', '#st2', '#st21', '#st23')
             hideEl('#st10', '#st20', '#st23', '#advBut')
             setInfo('Generating preview of object tracking...')
@@ -471,10 +482,13 @@ const submitAdvPreview = () => {
                 to process the full video and get a download link. <br> \
                 If the video looks wrong, click \'Adjust\' to change the object tracking parameters.')
             showEl('#derotBut')
+            $( '#advBut' )[0].value = "Adjust"
+            showEl('#advBut')
         },
-        error: (d) => { 
+        error: (d) => {
             clearState()
-            setDanger('Something went wrong - please refresh the page to try again.')
+            var err = 'An error occured. ' + (JSON.parse(d.responseText.split('\n')[0]).err ?? '')
+            setDanger(err + ' - please refresh the page to try again.')
         }
     })
 }
@@ -500,7 +514,7 @@ const submitRot = () => {
         r.append('advData', isAdvanced() == 'manual' ? 
             status.points.toString() :
                 (status.r_a ?? 0)+','+status.r)
-        r.append('visForce', $('#visForce')[0].checked)
+        r.append('visRadius', $('#visRadius')[0].checked)
         r.append('exportCSV', $('#exportCSV')[0].checked)
     }
     $.ajax(endpoint, { method: 'POST', data: r, dataType: 'text',
@@ -521,8 +535,12 @@ const submitRot = () => {
 const pollWait = () => {
     const status = getState()
     if (status.waiting == undefined) {
-        setSuccess('Done! Click <a download href=\"/return/'+getState().src+'\"> here </a> \
-            to download the fully processed, high resolution video. <br> Refresh the page to derotate another video.')
+        setSuccess('Done! Click <a download href=\"/return/'+getState().src+'\">here</a> \
+            to download the fully processed, high resolution video. <br> ' +
+            (!$('#exportCSV')[0].checked ? "" :
+                'Click <a download href=\"/return/'+getState().src+'.csv\">here</a> \
+                to download the tracking data in CSV format. <br> '
+            + 'Refresh the page to derotate another video.'))
         clearState()
         return
     }
@@ -555,7 +573,6 @@ async function setVideo (vl) {
     vid.load()
     await vid.play().catch(()=>{})
     resizeVideo()
-    resizePreview()
 }
 
 const resizeVideo = () => {
@@ -571,20 +588,20 @@ const resizeVideo = () => {
 
 const resizePreview = () => {
     const previewPic = $( '#previewPic' )[0]
-    const vidIn = $( '#videoIn' )[0]
     let og_h = previewPic.naturalHeight, og_w = previewPic.naturalWidth
     const scale_factor = Math.max(og_h / window.innerHeight, og_w / $('#vidDiv')[0].clientWidth)
     previewPic.scale_factor = (scale_factor > 1) ? scale_factor : 1
-    previewPic.height = Math.round(og_h / vidIn.scale_factor)
-    previewPic.width = Math.round(og_w / vidIn.scale_factor)
+    previewPic.height = Math.round(og_h / previewPic.scale_factor)
+    previewPic.width = Math.round(og_w / previewPic.scale_factor)
 }
 
 var resizeTimeoutID = -1;
 
 // both canvas and video, drawing circle if exists
 // also set a timeout to call itself 100ms after done.
-const resizeAll = () => {
-    clearTimeout(resizeTimeoutID);
+const resizeAll = (first = true) => {
+    if (!first)
+        clearTimeout(resizeTimeoutID);
     resizeVideo()
     resizePreview()
     const canv = $( '#drawSurf' )[0]
@@ -602,7 +619,8 @@ const resizeAll = () => {
         }
         canv.drawable = true
     }
-    resizeTimeoutID = setTimeout(resizeAll, 100);
+    if (first)
+        resizeTimeoutID = setTimeout(resizeAll, 100, false);
 }
 
 // resize listener
@@ -624,7 +642,7 @@ $(window).on('load', () => {
     })
 
     $( '#advBut' ).on('click', e => {
-        if ($( '#advBut' )[0].value  == 'Next step' || $( '#advBut' )[0].value == '') {
+        if ($( '#advBut' )[0].value  == 'Next step' || $( '#advBut' )[0].value  == 'Adjust' || $( '#advBut' )[0].value == '') {
             dropAdv()
         }
         else {
