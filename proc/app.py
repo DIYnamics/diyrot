@@ -161,11 +161,16 @@ def update_count():
     is hit. Can lose count on concurrent accesses
     '''
     c = 0
-    with open('count', 'r+') as f:
-        c = int(f.read()) + 1
-        f.seek(0)
-        f.write(str(c))
-    return (str(c), 200)
+    try:
+        with open('count', 'r+') as f:
+            c = int(f.read()) + 1
+            f.seek(0)
+            f.write(str(c))
+        return (str(c), 200)
+    except:
+        with open('count', 'w') as f:
+            f.write('0')
+        return ('0', 200)
 
 def opencv_detect(vidfn, preview_out_fn):
     # calls radius checker with give video
