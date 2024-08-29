@@ -307,8 +307,8 @@ int main(int argc, const char* argv[]) {
 #if defined(ADV_DEROT)
     if (kExportCsv)
         export_csv(kOutputFn + ".csv", adv_pth);
-    rename(write_fn.c_str(), kOutputFn.c_str());
 #endif
+    rename(write_fn.c_str(), kOutputFn.c_str());
 
 #if defined(ADVANCED)
     return adv_pth.valid ? EXIT_SUCCESS : 3; // no tracking points left
