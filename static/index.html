@@ -50,8 +50,8 @@
                 </div>
             </div>
             <div id="advancedCard">
-                <label id="advancedBut" data-bs-toggle="collapse" href="#advancedCollapse" role="button" 
-                    class="mb-0 col-form-label" aria-expaned="false">Advanced [+]</label>
+                <label id="advancedBut" data-bs-toggle="collapse" href="#advancedCollapse" role="button"
+                    class="mb-0 col-form-label" aria-expanded="false">Advanced [+]</label>
                 <div class="collapse" id="advancedCollapse">
                     <div class="row"> <text>
                         Track objects in video by one of the two following methods:
@@ -80,28 +80,19 @@
                             </div>
                             <div>
                                 <label class="form-check-label mb-0" style="margin-left:10px" for="visRadius">
-                                    <input class="form-check-input" type="checkbox" id="visRadius" autocomplete=off /> Visualize rotation radius and velocity in the rotating frame
+                                    <input class="form-check-input" type="checkbox" id="visRadius" autocomplete=off /> Visualize rotation radius and velocity of tracked points in the rotating frame
                                 </label>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <label class="form-check-label mb-0" for="sideBS">
-                            <input class="form-check-input" type="checkbox" id="sideBS"/> Show both original and derotated frames 
+                            <input class="form-check-input" type="checkbox" id="sideBS"/> Show both original and derotated frames
                         </label>
                     </div>
                 </div>
             </div>
             <div class="row d-flex align-items-center">
-                <div class="col-md-8">
-                    <p class="alert alert-info mb-0" style="font-size:15px;font-weight:bold" id="status">
-                        Specify the rate of derotation, then select a video file to derotate. <br>
-                        If you have slow motion video, click <a href="https://diynamics.github.io/pages/diyrotate.html#slow-mo">here</a>
-                        for an explanation of what number to put in the RPM field. <br>
-                        Need help? Don't have a spinny table set up yet? Check out the 
-                        <a href="https://diynamics.github.io/pages/diyrotate.html"> diynamics page </a> for tutorials and examples. <br>
-                    </p>
-                </div>
                 <div class="col-md-4" style="z-index:-1">
                     <ul class="alert alert-light mb-0" style="font-size:small">
                         <li id="st1" style="font-weight:bolder"> Step 1: select rotation RPM and video file</li>
@@ -118,6 +109,18 @@
                         <li id="st3"> Step 3: server derotates video</li>
                         <li id="st4"> Step 4: download full quality derotated video</li>
                     </ul>
+                </div>
+                <div class="col-md-8 alert alert-info mb-0" style="font-size:15px;font-weight:bold" id="status">
+                    <ul style="margin-bottom: 0px">
+                        <li> To start: <br>
+                            <ol>
+                            <li> Specify the rate of derotation </li>
+                            <li> Select a video file to derotate </li>
+                            </ol>
+                        </li>
+                        <li> Need help? Don't have a spinny table set up yet? Check out the <a href="https://diynamics.github.io/pages/diyrotate.html">diynamics page</a> for tutorials and examples. </li>
+                        <li> If you have slow motion video, click <a href="https://diynamics.github.io/pages/diyrotate.html#slow-mo">here</a> for an explanation of what number to put in the RPM field. </li>
+                        </ul>
                 </div>
             </div>
             <div class="row">
