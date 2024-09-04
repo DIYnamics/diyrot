@@ -323,9 +323,9 @@ const deboldEl = (...a) => a.forEach(l => $(l)[0].style.fontWeight = 'normal')
 // revert to original video when click adjust
 const dropManual = () => {
     resizePreview()
-    showEl('#st20', '#previewPic')
-    boldEl('#st21')
-    deboldEl('#st2')
+    showEl('#st30', '#previewPic')
+    boldEl('#st31')
+    deboldEl('#st3')
     hideEl('#advBut', '#derotBut', '#videoIn')
     $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', false)
     $( '#previewBut' )[0].value = "Regenerate Preview"
@@ -343,8 +343,8 @@ const dropManual = () => {
 
 const dropAdv = () => {
     boldEl(isAdvanced() == "manual" ? '#stadvman' : '#stadvauto')
-    showEl('#previewPic', '#st20')
-    hideEl('#st21', '#previewBut', '#derotBut', '#videoIn')
+    showEl('#previewPic', '#st30')
+    hideEl('#st31', '#previewBut', '#derotBut', '#videoIn')
     $( '#advBut' ).prop('disabled', true)
     $('#advBut')[0].value = 'Generate tracking preview'
     setInfo( isAdvanced() == "manual" ?
@@ -390,8 +390,8 @@ const submitPreview = (newSub) => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
             $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', true)
-            deboldEl('#st1', '#st2')
-            hideEl('#st10', '#st20', '#previewBut')
+            deboldEl('#st2', '#st3')
+            hideEl('#st20', '#st30', '#previewBut')
             if(newSub)
                 showEl('progress')
             $( '#previewBut' )[0].value = "Adjust"
@@ -401,12 +401,12 @@ const submitPreview = (newSub) => {
             setVideo(getState().src)
             showEl('#videoIn')
             hideEl('#previewPic')
-            boldEl('#st2')
+            boldEl('#st3')
             if (newSub) {
                 $('#previewPic')[0].src = getState().img
             }
             setWarning('Here is a rough preview of the first ten seconds of derotated video. <br>' +
-                (isAdvanced() ? 
+                (isAdvanced() ?
                     'If it looks correct, click \'Next step\' to move onto object tracking.' :
                     'Make sure the video looks correctly derotated; if so, click \'Derotate\' \
                  to process the full video and get a download link.') + 
@@ -421,9 +421,9 @@ const submitPreview = (newSub) => {
                 setDanger('Your video was uploaded to the server, but the server couldn\'t detect a \
                                valid circle in the first frame of the video. <br> \
                                Click \'Adjust\' to manually configure parameters, or pick a new file.')
-                showEl('#st10')
-                deboldEl('#st1')
-                boldEl('#st11')
+                showEl('#st20')
+                deboldEl('#st1', '#st2')
+                boldEl('#st21')
                 showEl('#previewBut')
             } else {
                 clearState()
@@ -466,17 +466,17 @@ const submitAdvPreview = () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
             $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', true)
-            deboldEl('#st1', '#st2', '#st21', '#st23')
-            hideEl('#st10', '#st20', '#st23', '#advBut')
+            deboldEl('#st1', '#st2', '#st3', '#st31', '#st33')
+            hideEl('#st20', '#st30', '#st33', '#advBut')
             setInfo('Generating preview of object tracking...')
         },
         success: (d) => {
             saveState(d.split('\n')[0])
             isAdvanced() == 'manual' ? setState('points', s.points) : setState('r_a', s.r_a ?? 0)
             setVideo(getState().src)
-            showEl('#videoIn', '#st20', '#st23')
+            showEl('#videoIn', '#st30', '#st33')
             hideEl('#previewPic')
-            boldEl('#st20', '#st23')
+            boldEl('#st30', '#st33')
             setWarning('Here is a rough preview of the first ten seconds object tracking. <br> \
                 Make sure the video looks correctly derotated; if so, click \'Derotate\' \
                 to process the full video and get a download link. <br> \
@@ -497,9 +497,9 @@ const submitAdvPreview = () => {
 // returns immediatly and starts wait loop to check HEAD
 const submitRot = () => {
     const status = getState()
-    deboldEl('#st1', '#st2')
-    hideEl('#st10', '#st20')
-    boldEl('#st3')
+    deboldEl('#st1', '#st2', '#st3')
+    hideEl('#st20', '#st30')
+    boldEl('#st4')
     const r = new FormData()
     r.append('v', status.fn)
     r.append('r', status.r)
@@ -511,7 +511,7 @@ const submitRot = () => {
     if (isAdvanced()) {
         endpoint = "/advderot/"
         r.append('adv', isAdvanced())
-        r.append('advData', isAdvanced() == 'manual' ? 
+        r.append('advData', isAdvanced() == 'manual' ?
             status.points.toString() :
                 (status.r_a ?? 0)+','+status.r)
         r.append('visRadius', $('#visRadius')[0].checked)
@@ -553,8 +553,8 @@ const pollWait = () => {
         $.ajax('/return/'+getState().src, {method: 'HEAD',
             success: () => {
                 setState('waiting', undefined)
-                deboldEl('#st3')
-                boldEl('#st4')
+                deboldEl('#st4')
+                boldEl('#st5')
             },
             error: () => {
                 saveState(JSON.stringify(status))
@@ -727,4 +727,23 @@ $(window).on('load', () => {
     else {
         pollWait();
     }
+
+    // update while in focus
+    $( '#rpm' )[0].addEventListener('input', (e) => {
+        if (e.target.validity.valid) {
+            $( '#fileInput' ).prop('disabled', false)
+        } else {
+            $( '#fileInput' ).prop('disabled', true)
+        }
+    })
+    // update after out of focus
+    $( '#rpm' )[0].addEventListener('change', (e) => {
+        if (e.target.validity.valid) {
+            boldEl('#st2')
+            deboldEl('#st1')
+        } else {
+            boldEl('#st1')
+            deboldEl('#st2')
+        }
+    })
 })

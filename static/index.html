@@ -17,10 +17,12 @@
         integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj"
         crossorigin="anonymous"></script>
         <script src="ndpr.js"></script>
+        <style> input:invalid { border: red solid 3px; }
+        </style>
     </head>
 
     <body>
-    <header>
+        <header>
             <nav class="bg-dark">
                 <div class="container-fluid">
                     <em class="navbar-brand" style="color:white">
@@ -40,13 +42,13 @@
             <div class="form-group row">
                 <label class="col-md-8 mb-0 col-form-label" for="rpm">RPM of rotating frame (positive is counterclockwise)</label>
                 <div class="col-md-4">
-                    <input class="form-control" type="text" id="rpm" value=10.0 /> 
+                    <input class="form-control" pattern="\d*(\.\d*)?" id="rpm" autofocus placeholder=10.0>
                 </div>
             </div>
             <div class="form-group row">
                 <label class="col-md-8 mb-0 col-form-label" for="fileInput">Select a file</label>
                 <div class="col-md-4">
-                    <input class="form-control" type="file" id="fileInput" autocomplete=off accept="video/*" />
+                    <input class="form-control" type="file" id="fileInput" autocomplete=off disabled accept="video/*" />
                 </div>
             </div>
             <div id="advancedCard">
@@ -95,32 +97,33 @@
             <div class="row d-flex align-items-center">
                 <div class="col-md-4" style="z-index:-1">
                     <ul class="alert alert-light mb-0" style="font-size:small">
-                        <li id="st1" style="font-weight:bolder"> Step 1: select rotation RPM and video file</li>
-                        <ul id="st10" hidden>
-                            <li id="st11">  Step 1.1: manually select rotation circle</li>
-                        </ul>
-                        <li id="st2"> Step 2: examine preview</li>
+                        <li id="st1" style="font-weight:bolder"> Step 1: select rotation RPM</li>
+                        <li id="st2"> Step 2: select video file</li>
                         <ul id="st20" hidden>
-                            <li id="st21"> Step 2.1: adjust RPM and/or rotation circle, then generate new preview</li>
-                            <li id="stadvman" hidden> Step 2.2: pick points of interest to track </li>
-                            <li id="stadvauto" hidden> Step 2.2: pick area of interest to track </li>
-                            <li id="st23" hidden> Step 2.3: examine preview of object tracking </li>
+                            <li id="st21">  Step 2.1: manually select rotation circle</li>
                         </ul>
-                        <li id="st3"> Step 3: server derotates video</li>
-                        <li id="st4"> Step 4: download full quality derotated video</li>
+                        <li id="st3"> Step 3: examine preview</li>
+                        <ul id="st30" hidden>
+                            <li id="st31"> Step 3.1: adjust RPM and/or rotation circle, then generate new preview</li>
+                            <li id="stadvman" hidden> Step 3.2: pick points of interest to track </li>
+                            <li id="stadvauto" hidden> Step 3.2: pick area of interest to track </li>
+                            <li id="st33" hidden> Step 3.3: examine preview of object tracking </li>
+                        </ul>
+                        <li id="st4"> Step 4: server derotates video</li>
+                        <li id="st5"> Step 5: download full quality derotated video</li>
                     </ul>
                 </div>
                 <div class="col-md-8 alert alert-info mb-0" style="font-size:15px;font-weight:bold" id="status">
                     <ul style="margin-bottom: 0px">
                         <li> To start: <br>
                             <ol>
-                            <li> Specify the rate of derotation </li>
-                            <li> Select a video file to derotate </li>
+                                <li> Specify the rate of derotation </li>
+                                <li> Select a video file to derotate </li>
                             </ol>
                         </li>
                         <li> Need help? Don't have a spinny table set up yet? Check out the <a href="https://diynamics.github.io/pages/diyrotate.html">diynamics page</a> for tutorials and examples. </li>
                         <li> If you have slow motion video, click <a href="https://diynamics.github.io/pages/diyrotate.html#slow-mo">here</a> for an explanation of what number to put in the RPM field. </li>
-                        </ul>
+                    </ul>
                 </div>
             </div>
             <div class="row">
