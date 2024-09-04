@@ -1,9 +1,9 @@
 'use strict';
 // Utility functions
-const setInfo = t => {$('#status').attr('class', 'alert alert-info'); $( '#status' ).first().html(t)}
-const setWarning = t => {$('#status').attr('class', 'alert alert-warning'); $( '#status' ).first().html(t)}
-const setDanger = t => {$('#status').attr('class', 'alert alert-danger'); $( '#status' ).first().html(t)}
-const setSuccess = t => {$('#status').attr('class', 'alert alert-success'); $( '#status' ).first().html(t)}
+const setInfo = t => {$('#status').attr('class', 'col-md-8 mb-0 alert alert-info'); $( '#status' ).first().html(t)}
+const setWarning = t => {$('#status').attr('class', 'col-md-8 mb-0 alert alert-warning'); $( '#status' ).first().html(t)}
+const setDanger = t => {$('#status').attr('class', 'col-md-8 mb-0 alert alert-danger'); $( '#status' ).first().html(t)}
+const setSuccess = t => {$('#status').attr('class', 'col-md-8 mb-0 alert alert-success'); $( '#status' ).first().html(t)}
 const sleep = m => new Promise(r => setTimeout(r, m))
 // check whether we should drop to advanced from submission page or manual page
 const isAdvanced = () => {
