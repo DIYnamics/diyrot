@@ -3,6 +3,7 @@
 # successful requests from failures
 import os
 import random
+import datetime
 import string
 import subprocess
 from flask import Flask, request, send_file, send_from_directory, url_for, jsonify
@@ -166,11 +167,18 @@ def update_count():
             c = int(f.read()) + 1
             f.seek(0)
             f.write(str(c))
-        return (str(c), 200)
+        with open('date', 'r') as f:
+            d = f.read()
+        return ( jsonify({'count': str(c),
+                         'date': d}), 200 )
     except:
         with open('count', 'w') as f:
             f.write('0')
-        return ('0', 200)
+        with open('date', 'w') as f:
+            d = datetime.datetime.now(datetime.UTC).strftime("%F")
+            f.write(d)
+    return ( jsonify({'count': '0',
+                      'date': d}), 200 )
 
 def opencv_detect(vidfn, preview_out_fn):
     # calls radius checker with give video
