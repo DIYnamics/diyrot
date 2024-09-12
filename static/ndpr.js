@@ -632,7 +632,8 @@ $(window).on('load', () => {
     // site counter
     $.ajax('/count/', {
         success: (d) => {
-            $( '#useCount' ).first().html("This website has been used approximately " + d + " times since the last version update.")
+            $( '#useCount' ).first().html("This website has been used approximately " + d.count +
+                " time" + (d.count == 1 ? "s" : "") + " since the last version update on " + d.date + ".")
     }})
 
     // element change listeners
