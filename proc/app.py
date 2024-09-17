@@ -175,7 +175,7 @@ def update_count():
         with open('count', 'w') as f:
             f.write('0')
         with open('date', 'w') as f:
-            d = datetime.datetime.now(datetime.UTC).strftime("%F")
+            d = datetime.datetime.now(datetime.timezone.utc).strftime("%F")
             f.write(d)
     return ( jsonify({'count': '0',
                       'date': d}), 200 )

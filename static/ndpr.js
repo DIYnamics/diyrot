@@ -633,7 +633,7 @@ $(window).on('load', () => {
     $.ajax('/count/', {
         success: (d) => {
             $( '#useCount' ).first().html("This website has been used approximately " + d.count +
-                " time" + (d.count == 1 ? "s" : "") + " since the last version update on " + d.date + ".")
+                " time" + (d.count == 1 ? "" : "s") + " since the last version update on " + d.date + ".")
     }})
 
     // element change listeners
@@ -661,11 +661,12 @@ $(window).on('load', () => {
         }
     })
 
-    $( '#derotBut' ).on('click', () =>  submitRot() )
+    $( '#derotBut' ).on('click', () =>  submitRot())
     // change advanced dropdown text and class
     $( '#advancedBut' ).on('click', () => {
         $('#advancedCard').toggleClass('card card-body');
-        event.target.innerHTML = event.target.innerHTML.includes('+') ? 'Advanced [-]':'Advanced [+]';
+        $('#advancedLabel').toggleClass('rainbow');
+        event.target.innerHTML = event.target.classList.contains('collapsed') ? 'Expand...':'Collapse...';
     })
 
     // change tracking tooltip
@@ -733,8 +734,10 @@ $(window).on('load', () => {
     $( '#rpm' )[0].addEventListener('input', (e) => {
         if (e.target.validity.valid) {
             $( '#fileInput' ).prop('disabled', false)
+            $( '#advancedBut' ).prop('disabled', false)
         } else {
             $( '#fileInput' ).prop('disabled', true)
+            $( '#advancedBut' ).prop('disabled', true)
         }
     })
     // update after out of focus
