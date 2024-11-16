@@ -12,3 +12,5 @@ test_dir/*
 bin/*
 compile_commands.json
 .cache/*
+proc/count
+proc/date
