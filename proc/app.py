@@ -60,6 +60,8 @@ def save():
         # stdout is connected to syslog and viewable thru monitoring
         print(' '.join(['error in upload', str(request.form), str(e)]),
               flush=True)
+        if e.returncode in _errors:
+            return (jsonify({'err': _errors[e.returncode]}), 500)
         return (jsonify({'fn': vname, 'img': '/return/'+preview_img_fn}), 500)
     return (jsonify({'fn': vname, 'x': x, 'y': y, 'r': r,
                      'src': '/return/'+preview_fn, 'img': '/return/'+preview_img_fn}),

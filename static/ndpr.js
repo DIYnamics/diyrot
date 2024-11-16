@@ -415,7 +415,8 @@ const submitPreview = (newSub) => {
             showEl('#previewBut')
         },
         error: (d) => {
-            if (newSub) {
+            let err = JSON.parse(d.responseText.split('\n')[0])?.err;
+            if (newSub && err == undefined) {
                 saveState(d.responseText.split('\n')[0])
                 $('#previewPic')[0].src = getState().img
                 setDanger('Your video was uploaded to the server, but the server couldn\'t detect a \
@@ -425,11 +426,10 @@ const submitPreview = (newSub) => {
                 deboldEl('#st1', '#st2')
                 boldEl('#st21')
                 showEl('#previewBut')
-            } else {
-                clearState()
-                let err = 'An error occured. ' + (JSON.parse(d.responseText.split('\n')[0]).err ?? '')
-                setDanger(err + ' - please refresh the page to try again.')
+                return;
             }
+            clearState()
+            setDanger('An error occured. ' + err + ' - please refresh the page to try again.')
         },
         complete: () => {
             hideEl('progress')
