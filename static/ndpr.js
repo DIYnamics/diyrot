@@ -7,13 +7,14 @@ const setSuccess = t => {$('#status').attr('class', 'col-md-8 mb-0 alert alert-s
 const sleep = m => new Promise(r => setTimeout(r, m))
 // check whether we should drop to advanced from submission page or manual page
 const isAdvanced = () => {
-    if($('#manualTrack')[0].checked) {
+    // don't report we're in advanced to canvas if we're adjusting a preview
+    if (!$( '#previewBut' )[0].hidden)
+        return "";
+    if ($('#manualTrack')[0].checked)
         return "manual";
-    } else if ($('#autoTrack')[0].checked) {
+    if ($('#autoTrack')[0].checked)
         return "auto";
-    } else {
-        return ""
-    }
+    return ""
 }
 
 // State cookie functions
