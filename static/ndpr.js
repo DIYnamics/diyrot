@@ -488,8 +488,8 @@ const submitAdvPreview = () => {
         },
         error: (d) => {
             clearState()
-            var err = 'An error occured. ' + (JSON.parse(d.responseText.split('\n')[0]).err ?? '')
-            setDanger(err + ' - please refresh the page to try again.')
+            let err = JSON.parse(d.responseText.split('\n')[0])?.err;
+            setDanger('An error occured. ' + err + ' - please refresh the page to try again.');
         }
     })
 }
