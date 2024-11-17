@@ -45,13 +45,13 @@ const setTrackingPoint = (x, y, i = -1) => {
     const argPoint = [Math.round(x * sf), Math.round(y * sf)]
     var cur = getState().points
     try {
-        if (i == -1 && cur.length < 10) {
+        if ((x < 0 || y < 0) && i != -1) {
+            cur.splice(i, 1);
+        } else if (i == -1 && cur.length < 10) {
             cur.push(argPoint)
-        }
-        else if (i != -1) {
+        } else if (i != -1) {
             cur[i] = argPoint
-        }
-        else {
+        } else {
             cur.shift();
             cur.push(argPoint)
         }
