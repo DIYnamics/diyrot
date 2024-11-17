@@ -123,9 +123,8 @@ PointsHistory auto_getpoints(std::string filename, std::string input,
                                    0.95*std::min(dims.height, dims.width));
 
     cv::Mat center_mask = cv::Mat::zeros(dims, CV_8UC1);
-    cv::circle(center_mask, center, outer_radius, 255, -1);
-    cv::bitwise_not(center_mask, center_mask);
-    cv::circle(center_mask, center, inner_radius, 255, -1);
+    cv::circle(center_mask, center, outer_radius, 255, cv::LineTypes::FILLED);
+    cv::circle(center_mask, center, inner_radius, 0, cv::LineTypes::FILLED);
 
     cv::Mat frame;
     if (!vid.read(frame))
@@ -133,11 +132,9 @@ PointsHistory auto_getpoints(std::string filename, std::string input,
 
     cv::Mat frame_gray;
     cv::cvtColor(frame, frame_gray, cv::COLOR_BGR2GRAY);
-    cv::bitwise_and(frame_gray, 0, frame_gray, center_mask);
 
     std::vector<cv::Point2f> output_points;
-    cv::goodFeaturesToTrack(frame_gray, output_points, 70, 0.1,
-                            7, cv::noArray(), 7);
+    cv::goodFeaturesToTrack(frame_gray, output_points, 100, 0.01, outer_radius / 50, center_mask);
 
     PointsHistory ret = {
         .points = std::vector<SinglePointHistory>(output_points.size()),
