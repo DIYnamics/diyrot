@@ -211,12 +211,12 @@ int main(int argc, const char* argv[]) {
                                      adv_lkpyr_points, // three args of output
                                      adv_lkpyr_status,
                                      adv_lkpyr_error,
-                                     cv::Size(15, 15), // window size
+                                     cv::Size(10, 10), // window size
                                      2,
                                      cv::TermCriteria(cv::TermCriteria::COUNT +
                                                       cv::TermCriteria::EPS,
-                                                      10,
-                                                      0.03));
+                                                      20,
+                                                      0.05));
             adv_frame_gray_old = adv_frame_gray.clone();
 
             // the assumed invariants here are that pth.points has all valid
