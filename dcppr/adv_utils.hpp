@@ -324,9 +324,9 @@ void fill_draw_vis_res(PointsHistory& p, cv::Mat& frame, const int offset,
             t.push_back(x);
         }
         double mid = t[t.size() / 2];
-        double velnorm_smooth = polyval(polyfit(t, fit_v, 3), mid);
-        double x_smooth = polyval(polyfit(t, fit_dx, 3), mid);
-        double y_smooth = polyval(polyfit(t, fit_dy, 3), mid);
+        double velnorm_smooth = polyval(polyfit(t, fit_v, 5), mid);
+        double x_smooth = polyval(polyfit(t, fit_dx, 5), mid);
+        double y_smooth = polyval(polyfit(t, fit_dy, 5), mid);
         double angle = atan2(y_smooth, x_smooth);
         icpe->radiusVis = *icp + cv::Point2f(-velnorm_smooth * std::sin(angle),
                                              velnorm_smooth * std::cos(angle));
