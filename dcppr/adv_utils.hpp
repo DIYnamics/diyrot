@@ -110,16 +110,18 @@ std::vector<std::string> deserialize(std::string in) {
 //NOLINTNEXTLINE(misc-definitions-in-headers)
 PointsHistory auto_getpoints(std::string filename, std::string input,
                              cv::Point2f center) {
+    auto vid = cv::VideoCapture(filename);
+    auto dims = cv::Size(vid.get(cv::CAP_PROP_FRAME_WIDTH),
+                         vid.get(cv::CAP_PROP_FRAME_HEIGHT));
     auto randColor = [] { return 128+(rand() % static_cast<int>(128)); };
 
     auto separated_input = deserialize(input);
     double inner_radius = strtod(separated_input[0].c_str(), NULL);
-    double outer_radius = strtod(separated_input[1].c_str(), NULL);
-    // open video
-    auto vid = cv::VideoCapture(filename);
+    // when the rotation mask goes outside the video frame, choose points inside
+    // the frame, lest match on cropped edge on rotation
+    double outer_radius = std::min(strtod(separated_input[1].c_str(), NULL),
+                                   0.95*std::min(dims.height, dims.width));
 
-    auto dims = cv::Size(vid.get(cv::CAP_PROP_FRAME_WIDTH),
-                         vid.get(cv::CAP_PROP_FRAME_HEIGHT));
     cv::Mat center_mask = cv::Mat::zeros(dims, CV_8UC1);
     cv::circle(center_mask, center, outer_radius, 255, -1);
     cv::bitwise_not(center_mask, center_mask);
