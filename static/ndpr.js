@@ -640,6 +640,7 @@ $(window).on('load', () => {
     // element change listeners
     $( '#fileInput' ).on('change', e => {
         setVideo(URL.createObjectURL(e.target.files[0]))
+        hideEl('#previewPic')
         submitPreview(true)
     })
 

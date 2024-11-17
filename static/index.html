@@ -50,6 +50,11 @@
                     <button id="advancedBut" data-bs-toggle="collapse" href="#advancedCollapse" disabled tabindex=-1 class="col-md-4 btn btn-outline-primary collapsed">Expand...</button>
                 </div>
                 <div class="collapse row" id="advancedCollapse">
+                    <div class="row">
+                        <label class="form-check-label mb-0" for="sideBS">
+                            <input class="form-check-input" type="checkbox" id="sideBS"/> Show both original and derotated frames
+                        </label>
+                    </div>
                     <div class="row"> <text>
                         Track objects in video by one of the two following methods:
                     </text> </div>
@@ -67,7 +72,7 @@
                         <div id="trackExtra" hidden>
                             <div>
                                 <text id="manualTrackHelp" hidden style="color:blueviolet">You'll be asked to pick points to track from the first frame of the video.</text>
-                                <text id="autoTrackHelp" hidden style="color:blueviolet">An algorithm will pick ~50 points from the first frame within the area of rotation,
+                                <text id="autoTrackHelp" hidden style="color:blueviolet">An algorithm will pick ~100 points from the first frame within the area of rotation,
                                     optionally excluding an area in the middle.</text>
                             </div>
                             <div>
@@ -81,11 +86,6 @@
                                 </label>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
-                        <label class="form-check-label mb-0" for="sideBS">
-                            <input class="form-check-input" type="checkbox" id="sideBS"/> Show both original and derotated frames
-                        </label>
                     </div>
                 </div>
             </div>
