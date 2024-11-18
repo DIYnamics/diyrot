@@ -328,7 +328,7 @@ const dropManual = () => {
     boldEl('#st31')
     deboldEl('#st3')
     hideEl('#advBut', '#derotBut', '#videoIn')
-    $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', false)
+    $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius, #fullTrail' ).prop('disabled', false)
     $( '#previewBut' )[0].value = "Regenerate Preview"
     setInfo('Respecify RPM, or change the rotation circle. The auto-detected \
         rotation circle (if found) is drawn. <br> To specify the rotation circle \
@@ -390,7 +390,7 @@ const submitPreview = (newSub) => {
         beforeSend: () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
-            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', true)
+            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius, #fullTrail' ).prop('disabled', true)
             deboldEl('#st2', '#st3')
             hideEl('#st20', '#st30', '#previewBut')
             if(newSub)
@@ -461,12 +461,13 @@ const submitAdvPreview = () => {
     r.append('adv', isAdvanced())
     r.append('advData', isAdvanced() == 'manual' ? s.points.toString() : (s.r_a ?? 0)+','+s.r)
     r.append('visRadius', $('#visRadius')[0].checked)
+    r.append('fullTrail', $('#fullTrail')[0].checked)
     $.ajax('/advpreview/', {
         method: 'POST', data: r, dataType: 'text', contentType: false, processData: false,
         beforeSend: () => {
             clearCanvas()
             $( '#drawSurf' )[0].drawable = false
-            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius' ).prop('disabled', true)
+            $( '#rpm, #fileInput, #sideBS, #manualTrack, #autoTrack, #exportCSV, #visRadius, #fullTrail' ).prop('disabled', true)
             deboldEl('#st1', '#st2', '#st3', '#st31', '#st33')
             hideEl('#st20', '#st30', '#st33', '#advBut')
             setInfo('Generating preview of object tracking...')
@@ -516,6 +517,7 @@ const submitRot = () => {
             status.points.toString() :
                 (status.r_a ?? 0)+','+status.r)
         r.append('visRadius', $('#visRadius')[0].checked)
+        r.append('fullTrail', $('#fullTrail')[0].checked)
         r.append('exportCSV', $('#exportCSV')[0].checked)
     }
     $.ajax(endpoint, { method: 'POST', data: r, dataType: 'text',

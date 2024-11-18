@@ -16,9 +16,9 @@
 #if !defined(ADVANCED)
 #define ARGC_COUNT 7
 #elif defined(ADV_PRE)
-#define ARGC_COUNT 10
-#elif defined(ADV_DEROT)
 #define ARGC_COUNT 11
+#elif defined(ADV_DEROT)
+#define ARGC_COUNT 12
 #endif
 
 #include "adv_utils.hpp"
@@ -48,7 +48,8 @@
     7  [  ADV_AUTO:'0'/'1'
     8     ADV_DATA:str
     9     ADV_VIS:'0'/'1'
-    10  [ ADV_CSV:'0'/'1' ]
+    10    ADV_LONG:'0'/'1'
+    11  [ ADV_CSV:'0'/'1' ]
        ]
 */
 
@@ -66,10 +67,11 @@ int main(int argc, const char* argv[]) {
     const std::string kAdvData = std::string(argv[8]);
     // don't split kVisRadius out as macro enabled as its hard
     const bool kVisRadius = std::string(argv[9]) == "1";
+    const bool kAdvFullTrail = std::string(argv[10]) == "1";
     const int kOutputQueueSize = kVisRadius ? K_TRAILING_POINTS : 1;
 #if defined(ADV_DEROT)
     // TODO: don't allocate the extra data vector if not exporting or visualize
-    const bool kExportCsv = std::string(argv[10]) == "1";
+    const bool kExportCsv = std::string(argv[11]) == "1";
 #endif
 #endif
 
@@ -246,8 +248,8 @@ int main(int argc, const char* argv[]) {
                 adv_pth.valid = true;
             }
 
+            int starting_idx = kAdvFullTrail ? 0 : std::max(0, (int)adv_pth.t.size() - K_TRAILING_POINTS);
             // TODO: dynamically adjust alpha / # of points drawn if to avoid noisy images
-            int starting_idx = std::max(0, (int)adv_pth.t.size() - K_TRAILING_POINTS);
             for (int i = 0; i < adv_lkpyr_points.size()-adv_points_demoted; i++) {
                 for (int j = starting_idx; j <
                 adv_pth.points[i].history.size(); j++) {

@@ -104,7 +104,8 @@ def advprev():
                                         request.form['sbs'] == 'true',
                                         request.form['adv'],
                                         request.form['advData'],
-                                        request.form['visRadius'] == 'true')
+                                        request.form['visRadius'] == 'true',
+                                        request.form['fullTrail'] == 'true')
     except Exception as e:
         # prints are connected to syslog and viewable thru monitoring
         print(' '.join(['error in advanced preview', str(request.form),
@@ -150,6 +151,7 @@ def advderot():
                          request.form['adv'],
                          request.form['advData'],
                          request.form['visRadius'] == 'true',
+                         request.form['fullTrail'] == 'true',
                          request.form['exportCSV'] == 'true')
     except Exception as e:
         # prints are connected to syslog and viewable thru monitoring
@@ -188,7 +190,7 @@ def opencv_detect(vidfn, preview_out_fn):
     return subprocess.check_output([radii_check_bin, vidfn, preview_out_fn], text=True).split()
 
 def opencv_preview(vidfn, x, y, r, rpm, sbs,
-                   adv='', advData='', visRadius=False):
+                   adv='', advData='', visRadius=False, fullTrail=False):
     # appends '-pre' before extension in filename; frontend attempts to load
     # this video on return
     out_fn = os.path.splitext(vidfn)[0] + ('-advpre' if adv else '-pre')
@@ -200,14 +202,14 @@ def opencv_preview(vidfn, x, y, r, rpm, sbs,
            str(x), str(y), str(r), str(rpm),
            os.path.join(_root_dir, 'return', out_fn+extn)]
     if adv:
-        cmd += ['1' if adv == 'auto' else '0', advData, '1' if visRadius else '0']
+        cmd += ['1' if adv == 'auto' else '0', advData, '1' if visRadius else '0', '1' if fullTrail else '0']
     # waits for cmd return and throws on non-zero
     subprocess.check_call(cmd)
 
     return out_fn+extn
 
 def opencv_derot(vidfn, x, y, r, rpm, sbs,
-                 adv='', advData='', visRadius=False, exportCSV=False):
+                 adv='', advData='', visRadius=False, fullTrail=False, exportCSV=False):
     # full quality derotation
     # start job and immediately return. up to frontend+nginx to keep track of
     # video derotation progress.
@@ -227,7 +229,7 @@ def opencv_derot(vidfn, x, y, r, rpm, sbs,
            os.path.join(_root_dir, 'return', out_fn+extn)]
     if adv:
         cmd += ['1' if adv == 'auto' else '0', advData,
-                '1' if visRadius else '0', '1' if exportCSV else '0']
+                '1' if visRadius else '0', '1' if fullTrail else '0', '1' if exportCSV else '0']
 
     subprocess.Popen(cmd)
     return out_fn+extn
