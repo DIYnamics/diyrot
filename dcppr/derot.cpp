@@ -1,6 +1,6 @@
 #define CODEC (cv::VideoWriter::fourcc('a', 'v', 'c', '1'))
 
-#define MAX_VIDEO_FRAME_AREA (3480*2160)
+#define MAX_VIDEO_FRAME_AREA (5120*2880)
 #define MIN_VIDEO_FRAME_AREA (400*300)
 // # of trailing points that get drawn, as well as half the size of the radius
 // visualization window

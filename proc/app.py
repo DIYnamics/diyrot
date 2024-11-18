@@ -19,7 +19,7 @@ random.seed()
 _errors = {
     255: "Server encountered an error with derotation input",
     254: "Server could not read the first frame of the input video",
-    253: "The uploaded input video was too small (<360p) or too big (>4k)",
+    253: "The uploaded input video was too small (<360p) or too big (>5k)",
     252: "Server could not create an output video to write to",
     251: "Server encountered an error with advanced input parameters",
     3: "Server finished derotation, but there were no points to track at the end"
