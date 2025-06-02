@@ -14,3 +14,4 @@ compile_commands.json
 .cache/*
 proc/count
 proc/date
+uploads/*

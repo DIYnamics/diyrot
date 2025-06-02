@@ -261,4 +261,4 @@ def logo():
     return send_file('../static/diynamics-logo.png')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8081)
+    app.run(host='0.0.0.0', port=5000)
