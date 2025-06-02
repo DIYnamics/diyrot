@@ -49,9 +49,11 @@ int main(int argc, const char* argv[]) {
                     300,
                     100);
 
-    // if no circles found, return
+    // if no circles found, return.
+    // This is a benign error (we can manually specify), but needs to not conflict
+    // with the error codes.
     if (circles.size() < 1)
-        return(-3);
+        return(100);
 
     int x = circles[0][0];
     int y = circles[0][1];

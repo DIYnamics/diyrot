@@ -53,6 +53,10 @@ def save():
         v.save(vpath)
         v.close()
         # detect circle and generate preview
+        # exceptions are used in detect to indicate "couldn't find circle",
+        # but also in preview to indictate "bad filetype".
+        # radii_check should be responsible for input validation;
+        # for now, make sure the return codes don't collide (only return error code when there's an actual error)
         x,y,r = opencv_detect(vpath, os.path.join(_root_dir, 'return', preview_img_fn))
         preview_fn = opencv_preview(vname, x, y, r, float(request.form['rpm']),
                                     request.form['sbs'] == 'true')
